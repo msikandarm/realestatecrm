@@ -17,6 +17,7 @@ class Society extends Model
         'code',
         'address',
         'city',
+        'city_id',
         'province',
         'total_area',
         'area_unit',
@@ -28,6 +29,7 @@ class Society extends Model
         'completion_date',
         'amenities',
         'map_file',
+        'noc_file',
         'created_by',
         'updated_by',
     ];
@@ -46,6 +48,11 @@ class Society extends Model
     public function blocks(): HasMany
     {
         return $this->hasMany(Block::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
 
     public function creator(): BelongsTo
@@ -93,17 +100,18 @@ class Society extends Model
 
     public function getTotalPlotsAttribute()
     {
-        return $this->blocks()->withSum('streets', 'total_plots')->get()->sum('streets_sum_total_plots') ?? 0;
+        // Compute total plots by counting plots linked to this society (robust if streets table lacks aggregate columns)
+        return \App\Models\Plot::where('society_id', $this->id)->whereNull('deleted_at')->count() ?? 0;
     }
 
     public function getAvailablePlotsAttribute()
     {
-        return $this->blocks()->withSum('streets', 'available_plots')->get()->sum('streets_sum_available_plots') ?? 0;
+        return \App\Models\Plot::where('society_id', $this->id)->where('status', 'available')->whereNull('deleted_at')->count() ?? 0;
     }
 
     public function getSoldPlotsAttribute()
     {
-        return $this->blocks()->withSum('streets', 'sold_plots')->get()->sum('streets_sum_sold_plots') ?? 0;
+        return \App\Models\Plot::where('society_id', $this->id)->where('status', 'sold')->whereNull('deleted_at')->count() ?? 0;
     }
 
     public function isActive(): bool
@@ -114,6 +122,14 @@ class Society extends Model
     public function isCompleted(): bool
     {
         return $this->status === 'completed';
+    }
+
+    /**
+     * Backwards-compatible alias: some views use possession_date field name.
+     */
+    public function getPossessionDateAttribute()
+    {
+        return $this->completion_date;
     }
 
     /**

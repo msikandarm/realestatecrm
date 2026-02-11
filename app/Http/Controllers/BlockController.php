@@ -75,6 +75,14 @@ class BlockController extends Controller
      */
     public function store(Request $request)
     {
+        // Normalize empty inputs so validation treats empty strings as null/defaults
+        if ($request->has('total_area') && $request->total_area === '') {
+            $request->merge(['total_area' => null]);
+        }
+        if ($request->has('status') && $request->status === '') {
+            $request->merge(['status' => 'active']);
+        }
+
         $validated = $request->validate([
             'society_id' => 'required|exists:societies,id',
             'name' => 'required|string|max:255',
@@ -125,6 +133,11 @@ class BlockController extends Controller
             'booked_plots' => $block->total_plots - $block->available_plots - $block->sold_plots,
         ];
 
+        // Expose count attributes used by blades
+        $block->streets_count = $stats['total_streets'];
+        $block->plots_count = $stats['total_plots'];
+        $block->properties_count = \App\Models\Property::where('block_id', $block->id)->whereNull('deleted_at')->count();
+
         return view('blocks.show', compact('block', 'stats'));
     }
 
@@ -143,6 +156,14 @@ class BlockController extends Controller
      */
     public function update(Request $request, Block $block)
     {
+        // Normalize empty inputs so validation treats empty strings as null/defaults
+        if ($request->has('total_area') && $request->total_area === '') {
+            $request->merge(['total_area' => null]);
+        }
+        if ($request->has('status') && $request->status === '') {
+            $request->merge(['status' => $block->status ?? 'active']);
+        }
+
         $validated = $request->validate([
             'society_id' => 'required|exists:societies,id',
             'name' => 'required|string|max:255',

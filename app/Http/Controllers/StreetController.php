@@ -85,13 +85,8 @@ class StreetController extends Controller
         $selectedSociety = $request->get('society_id');
         $selectedBlock = $request->get('block_id');
 
-        $blocks = [];
-        if ($selectedSociety) {
-            $blocks = Block::where('society_id', $selectedSociety)
-                ->active()
-                ->orderBy('name')
-                ->get();
-        }
+        // Pass all active blocks to the view so client-side filtering works
+        $blocks = Block::active()->orderBy('name')->get();
 
         return view('streets.create', compact('societies', 'blocks', 'selectedSociety', 'selectedBlock'));
     }
@@ -144,6 +139,10 @@ class StreetController extends Controller
             'sold_plots' => $street->sold_plots,
             'booked_plots' => $street->total_plots - $street->available_plots - $street->sold_plots,
         ];
+
+        // Expose count attributes used by blades
+        $street->plots_count = $stats['total_plots'];
+        $street->properties_count = \App\Models\Property::where('street_id', $street->id)->whereNull('deleted_at')->count();
 
         return view('streets.show', compact('street', 'stats'));
     }

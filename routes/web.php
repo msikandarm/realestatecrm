@@ -67,14 +67,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Block Management
+    // Register create/store before the show route so 'blocks/create' isn't captured by 'blocks/{block}'
+    Route::middleware(['permission:blocks.create'])->group(function () {
+        Route::get('blocks/create', [BlockController::class, 'create'])->name('blocks.create');
+        Route::post('blocks', [BlockController::class, 'store'])->name('blocks.store');
+    });
     Route::middleware(['permission:blocks.view'])->group(function () {
         Route::get('blocks', [BlockController::class, 'index'])->name('blocks.index');
         Route::get('blocks/{block}', [BlockController::class, 'show'])->name('blocks.show');
         Route::get('api/blocks/by-society', [BlockController::class, 'getBySociety'])->name('blocks.by-society');
-    });
-    Route::middleware(['permission:blocks.create'])->group(function () {
-        Route::get('blocks/create', [BlockController::class, 'create'])->name('blocks.create');
-        Route::post('blocks', [BlockController::class, 'store'])->name('blocks.store');
     });
     Route::middleware(['permission:blocks.edit'])->group(function () {
         Route::get('blocks/{block}/edit', [BlockController::class, 'edit'])->name('blocks.edit');
@@ -85,14 +86,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Street Management
+    // Register create/store before the show route so 'streets/create' isn't captured by 'streets/{street}'
+    Route::middleware(['permission:streets.create'])->group(function () {
+        Route::get('streets/create', [StreetController::class, 'create'])->name('streets.create');
+        Route::post('streets', [StreetController::class, 'store'])->name('streets.store');
+    });
     Route::middleware(['permission:streets.view'])->group(function () {
         Route::get('streets', [StreetController::class, 'index'])->name('streets.index');
         Route::get('streets/{street}', [StreetController::class, 'show'])->name('streets.show');
         Route::get('api/streets/by-block', [StreetController::class, 'getByBlock'])->name('streets.by-block');
-    });
-    Route::middleware(['permission:streets.create'])->group(function () {
-        Route::get('streets/create', [StreetController::class, 'create'])->name('streets.create');
-        Route::post('streets', [StreetController::class, 'store'])->name('streets.store');
     });
     Route::middleware(['permission:streets.edit'])->group(function () {
         Route::get('streets/{street}/edit', [StreetController::class, 'edit'])->name('streets.edit');

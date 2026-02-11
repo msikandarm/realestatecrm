@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Society;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -88,9 +89,12 @@ class SocietyController extends Controller
             'developer_contact' => 'nullable|string|max:50',
             'status' => 'required|in:active,inactive,under-development,completed',
             'launch_date' => 'nullable|date',
+            // Accept either completion_date or possession_date from the form
             'completion_date' => 'nullable|date|after_or_equal:launch_date',
+            'possession_date' => 'nullable|date|after_or_equal:launch_date',
             'amenities' => 'nullable|array',
             'map_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'noc_file' => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
         // Handle file upload
@@ -98,13 +102,21 @@ class SocietyController extends Controller
             $validated['map_file'] = $request->file('map_file')->store('societies/maps', 'public');
         }
 
-        // If city_id provided, resolve to city name in existing societies table
+        // Handle NOC upload (PDF)
+        if ($request->hasFile('noc_file')) {
+            $validated['noc_file'] = $request->file('noc_file')->store('societies/nocs', 'public');
+        }
+
+        // If city_id provided, keep the id and also resolve the city name for convenience
         if (!empty($validated['city_id'])) {
             $city = \App\Models\City::find($validated['city_id']);
             $validated['city'] = $city ? $city->name : null;
         }
 
-        unset($validated['city_id']);
+        // Map possession_date (form) to completion_date (DB) if provided
+        if ($request->filled('possession_date') && empty($validated['completion_date'])) {
+            $validated['completion_date'] = $request->input('possession_date');
+        }
 
         $validated['created_by'] = Auth::id();
 
@@ -131,6 +143,15 @@ class SocietyController extends Controller
             'booked_plots' => $society->total_plots - $society->available_plots - $society->sold_plots,
         ];
 
+        // Also expose count attributes on the model so blades using *_count work
+        $society->blocks_count = $stats['total_blocks'];
+        $society->streets_count = $stats['total_streets'];
+        // total_plots already available via accessor
+        $society->plots_count = $stats['total_plots'];
+
+        // Properties count (if properties are linked to society)
+        $society->properties_count = \App\Models\Property::where('society_id', $society->id)->whereNull('deleted_at')->count();
+
         return view('societies.show', compact('society', 'stats'));
     }
 
@@ -139,7 +160,9 @@ class SocietyController extends Controller
      */
     public function edit(Society $society)
     {
-        return view('societies.edit', compact('society'));
+        $cities = City::orderBy('name')->get();
+
+        return view('societies.edit', compact('society', 'cities'));
     }
 
     /**
@@ -160,9 +183,12 @@ class SocietyController extends Controller
             'developer_contact' => 'nullable|string|max:50',
             'status' => 'required|in:active,inactive,under-development,completed',
             'launch_date' => 'nullable|date',
+            // Accept either completion_date or possession_date from the form
             'completion_date' => 'nullable|date|after_or_equal:launch_date',
+            'possession_date' => 'nullable|date|after_or_equal:launch_date',
             'amenities' => 'nullable|array',
             'map_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'noc_file' => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
         // Handle file upload
@@ -174,11 +200,23 @@ class SocietyController extends Controller
             $validated['map_file'] = $request->file('map_file')->store('societies/maps', 'public');
         }
 
+        // Handle NOC upload (PDF)
+        if ($request->hasFile('noc_file')) {
+            if ($society->noc_file) {
+                \Storage::disk('public')->delete($society->noc_file);
+            }
+            $validated['noc_file'] = $request->file('noc_file')->store('societies/nocs', 'public');
+        }
+
         if (!empty($validated['city_id'])) {
             $city = \App\Models\City::find($validated['city_id']);
             $validated['city'] = $city ? $city->name : null;
         }
-        unset($validated['city_id']);
+
+        // Map possession_date (form) to completion_date (DB) if provided
+        if ($request->filled('possession_date') && empty($validated['completion_date'])) {
+            $validated['completion_date'] = $request->input('possession_date');
+        }
 
         $validated['updated_by'] = Auth::id();
 

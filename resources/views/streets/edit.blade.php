@@ -177,7 +177,7 @@
     .section-icon {
         width: 48px;
         height: 48px;
-        background: linear-gradient(135deg, var(--info), #2563eb);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -237,8 +237,8 @@
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
-        border-color: var(--info);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .form-group textarea {

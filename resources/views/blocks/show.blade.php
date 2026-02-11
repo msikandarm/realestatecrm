@@ -245,6 +245,31 @@
 
 @push('styles')
 <style>
+    /* Match Societies show compact stats and header spacing */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        padding: 14px 18px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 8px rgba(16,24,40,0.04);
+    }
+
+    .stat-icon { width: 56px; height: 56px; display:flex; align-items:center; justify-content:center; }
+    .stat-icon-inner { width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+    .stat-value { font-size: 1.5rem; }
+
+    .page-title { font-size: 1.9rem; font-weight: 800; }
+    .page-subtitle { font-size: 0.95rem; color: var(--gray-600); }
+    .header-actions .btn { margin-left: 8px; }
+
     .header-content {
         display: flex;
         justify-content: space-between;

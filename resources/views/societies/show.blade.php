@@ -375,6 +375,51 @@
 
 @push('styles')
 <style>
+    /* Use same compact stats layout as index */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* Compact stat card sizing (match index) */
+    .stat-card {
+        padding: 14px 18px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 8px rgba(16,24,40,0.04);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-icon-inner {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-value { font-size: 1.5rem; }
+
+    /* Tidy header and title spacing */
+    .page-title { font-size: 1.9rem; font-weight: 800; }
+    .page-subtitle { font-size: 0.95rem; color: var(--gray-600); }
+
+    /* Right aligned small actions */
+    .header-actions .btn { margin-left: 8px; }
+    .header-actions .btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(220,38,38,0.08); }
+
     .header-content {
         display: flex;
         justify-content: space-between;
@@ -683,6 +728,28 @@
     .empty-state-small p {
         color: var(--gray-600);
         margin-bottom: 15px;
+    }
+
+    /* Style the Add First Block button to match design (large gradient pill) */
+    .empty-state-small .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 28px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        box-shadow: 0 8px 30px rgba(102,126,234,0.12);
+        text-decoration: none;
+    }
+
+    .empty-state-small .btn i {
+        font-size: 1.6rem;
+        opacity: 0.9;
+        margin-right: 6px;
     }
 
     .sidebar-header {

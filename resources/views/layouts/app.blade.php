@@ -347,6 +347,33 @@
             max-width: 1600px;
         }
 
+        /* Global button styles (shared across views) */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            text-decoration: none;
+            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; }
+        .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+        .btn-light { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+        .btn-sm { padding: 6px 12px; font-size: 0.8125rem; }
+
+        .btn-icon { width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; border-radius:8px; background: var(--gray-100); color: var(--gray-700); border: none; }
+        .btn-icon i { pointer-events: none; }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16,24,40,0.06); }
+
         .page-header {
             margin-bottom: 30px;
         }

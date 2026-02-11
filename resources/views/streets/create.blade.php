@@ -156,6 +156,13 @@
 
 @push('styles')
 <style>
+    /* Societies-like button styles (match Blocks create) */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+    .btn-light { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+
     .form-card {
         background: white;
         border-radius: 12px;
@@ -177,7 +184,7 @@
     .section-icon {
         width: 48px;
         height: 48px;
-        background: linear-gradient(135deg, var(--info), #2563eb);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -237,8 +244,8 @@
     .form-group select:focus,
     .form-group textarea:focus {
         outline: none;
-        border-color: var(--info);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .form-group textarea {
