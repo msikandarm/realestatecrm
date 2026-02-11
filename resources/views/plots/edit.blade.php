@@ -95,32 +95,31 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="size">Plot Size *</label>
-                    <input type="number" id="size" name="size"
-                           value="{{ old('size', $plot->size) }}"
+                    <label for="area">Plot Size *</label>
+                    <input type="number" id="area" name="area"
+                           value="{{ old('area', $plot->area ?? $plot->size) }}"
                            placeholder="e.g., 5"
                            step="0.01"
                            required>
                 </div>
 
                 <div class="form-group">
-                    <label for="unit">Unit *</label>
-                    <select id="unit" name="unit" required>
+                    <label for="area_unit">Unit *</label>
+                    <select id="area_unit" name="area_unit" required>
                         <option value="">Select Unit</option>
-                        <option value="marla" {{ old('unit', $plot->unit) == 'marla' ? 'selected' : '' }}>Marla</option>
-                        <option value="kanal" {{ old('unit', $plot->unit) == 'kanal' ? 'selected' : '' }}>Kanal</option>
-                        <option value="sqft" {{ old('unit', $plot->unit) == 'sqft' ? 'selected' : '' }}>Square Feet</option>
-                        <option value="sqyd" {{ old('unit', $plot->unit) == 'sqyd' ? 'selected' : '' }}>Square Yards</option>
+                        <option value="marla" {{ old('area_unit', $plot->area_unit ?? $plot->unit) == 'marla' ? 'selected' : '' }}>Marla</option>
+                        <option value="kanal" {{ old('area_unit', $plot->area_unit ?? $plot->unit) == 'kanal' ? 'selected' : '' }}>Kanal</option>
+                        <option value="acre" {{ old('area_unit', $plot->area_unit) == 'acre' ? 'selected' : '' }}>Acre</option>
+                        <option value="sq ft" {{ old('area_unit', $plot->area_unit ?? $plot->unit) == 'sq ft' ? 'selected' : '' }}>Square Feet</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="price">Price (PKR) *</label>
-                    <input type="number" id="price" name="price"
-                           value="{{ old('price', $plot->price) }}"
+                    <label for="total_price">Total Price (PKR)</label>
+                    <input type="number" id="total_price" name="total_price"
+                           value="{{ old('total_price', $plot->total_price ?? $plot->price) }}"
                            placeholder="e.g., 5000000"
-                           step="0.01"
-                           required>
+                           step="0.01">
                 </div>
 
                 <div class="form-group">
@@ -128,9 +127,9 @@
                     <select id="status" name="status" required>
                         <option value="">Select Status</option>
                         <option value="available" {{ old('status', $plot->status) == 'available' ? 'selected' : '' }}>Available</option>
-                        <option value="reserved" {{ old('status', $plot->status) == 'reserved' ? 'selected' : '' }}>Reserved</option>
+                        <option value="booked" {{ old('status', $plot->status) == 'booked' ? 'selected' : '' }}>Booked</option>
                         <option value="sold" {{ old('status', $plot->status) == 'sold' ? 'selected' : '' }}>Sold</option>
-                        <option value="blocked" {{ old('status', $plot->status) == 'blocked' ? 'selected' : '' }}>Blocked</option>
+                        <option value="on-hold" {{ old('status', $plot->status) == 'on-hold' ? 'selected' : '' }}>On Hold</option>
                     </select>
                 </div>
 
@@ -140,7 +139,60 @@
                         <option value="">Select Type</option>
                         <option value="residential" {{ old('type', $plot->type) == 'residential' ? 'selected' : '' }}>Residential</option>
                         <option value="commercial" {{ old('type', $plot->type) == 'commercial' ? 'selected' : '' }}>Commercial</option>
+                        <option value="industrial" {{ old('type', $plot->type) == 'industrial' ? 'selected' : '' }}>Industrial</option>
                         <option value="agricultural" {{ old('type', $plot->type) == 'agricultural' ? 'selected' : '' }}>Agricultural</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="width">Width (optional)</label>
+                    <input type="number" id="width" name="width" value="{{ old('width', $plot->width) }}" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="length">Length (optional)</label>
+                    <input type="number" id="length" name="length" value="{{ old('length', $plot->length) }}" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="corner">Corner *</label>
+                    <select id="corner" name="corner" required>
+                        <option value="">Select</option>
+                        <option value="yes" {{ old('corner', $plot->corner) == 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ old('corner', $plot->corner) == 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="park_facing">Park Facing *</label>
+                    <select id="park_facing" name="park_facing" required>
+                        <option value="">Select</option>
+                        <option value="yes" {{ old('park_facing', $plot->park_facing) == 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ old('park_facing', $plot->park_facing) == 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="main_road_facing">Main Road Facing *</label>
+                    <select id="main_road_facing" name="main_road_facing" required>
+                        <option value="">Select</option>
+                        <option value="yes" {{ old('main_road_facing', $plot->main_road_facing) == 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ old('main_road_facing', $plot->main_road_facing) == 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="facing">Facing</label>
+                    <select id="facing" name="facing">
+                        <option value="">Select Facing</option>
+                        <option value="north" {{ old('facing', $plot->facing) == 'north' ? 'selected' : '' }}>North</option>
+                        <option value="south" {{ old('facing', $plot->facing) == 'south' ? 'selected' : '' }}>South</option>
+                        <option value="east" {{ old('facing', $plot->facing) == 'east' ? 'selected' : '' }}>East</option>
+                        <option value="west" {{ old('facing', $plot->facing) == 'west' ? 'selected' : '' }}>West</option>
+                        <option value="north-east" {{ old('facing', $plot->facing) == 'north-east' ? 'selected' : '' }}>North-East</option>
+                        <option value="north-west" {{ old('facing', $plot->facing) == 'north-west' ? 'selected' : '' }}>North-West</option>
+                        <option value="south-east" {{ old('facing', $plot->facing) == 'south-east' ? 'selected' : '' }}>South-East</option>
+                        <option value="south-west" {{ old('facing', $plot->facing) == 'south-west' ? 'selected' : '' }}>South-West</option>
                     </select>
                 </div>
 

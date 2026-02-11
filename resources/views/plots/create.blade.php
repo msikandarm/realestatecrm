@@ -85,6 +85,7 @@
             </div>
 
             <div class="form-grid">
+
                 <div class="form-group">
                     <label for="plot_number">Plot Number *</label>
                     <input type="text" id="plot_number" name="plot_number"
@@ -94,32 +95,31 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="size">Plot Size *</label>
-                    <input type="number" id="size" name="size"
-                           value="{{ old('size') }}"
+                    <label for="area">Plot Size *</label>
+                    <input type="number" id="area" name="area"
+                           value="{{ old('area') }}"
                            placeholder="e.g., 5"
                            step="0.01"
                            required>
                 </div>
 
                 <div class="form-group">
-                    <label for="unit">Unit *</label>
-                    <select id="unit" name="unit" required>
+                    <label for="area_unit">Unit *</label>
+                    <select id="area_unit" name="area_unit" required>
                         <option value="">Select Unit</option>
-                        <option value="marla" {{ old('unit') == 'marla' ? 'selected' : '' }}>Marla</option>
-                        <option value="kanal" {{ old('unit') == 'kanal' ? 'selected' : '' }}>Kanal</option>
-                        <option value="sqft" {{ old('unit') == 'sqft' ? 'selected' : '' }}>Square Feet</option>
-                        <option value="sqyd" {{ old('unit') == 'sqyd' ? 'selected' : '' }}>Square Yards</option>
+                        <option value="marla" {{ old('area_unit') == 'marla' ? 'selected' : '' }}>Marla</option>
+                        <option value="kanal" {{ old('area_unit') == 'kanal' ? 'selected' : '' }}>Kanal</option>
+                        <option value="acre" {{ old('area_unit') == 'acre' ? 'selected' : '' }}>Acre</option>
+                        <option value="sq ft" {{ old('area_unit') == 'sq ft' ? 'selected' : '' }}>Square Feet</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="price">Price (PKR) *</label>
-                    <input type="number" id="price" name="price"
-                           value="{{ old('price') }}"
+                    <label for="total_price">Total Price (PKR)</label>
+                    <input type="number" id="total_price" name="total_price"
+                           value="{{ old('total_price') }}"
                            placeholder="e.g., 5000000"
-                           step="0.01"
-                           required>
+                           step="0.01">
                 </div>
 
                 <div class="form-group">
@@ -127,9 +127,9 @@
                     <select id="status" name="status" required>
                         <option value="">Select Status</option>
                         <option value="available" {{ old('status', 'available') == 'available' ? 'selected' : '' }}>Available</option>
-                        <option value="reserved" {{ old('status') == 'reserved' ? 'selected' : '' }}>Reserved</option>
+                        <option value="booked" {{ old('status') == 'booked' ? 'selected' : '' }}>Booked</option>
                         <option value="sold" {{ old('status') == 'sold' ? 'selected' : '' }}>Sold</option>
-                        <option value="blocked" {{ old('status') == 'blocked' ? 'selected' : '' }}>Blocked</option>
+                        <option value="on-hold" {{ old('status') == 'on-hold' ? 'selected' : '' }}>On Hold</option>
                     </select>
                 </div>
 
@@ -139,7 +139,60 @@
                         <option value="">Select Type</option>
                         <option value="residential" {{ old('type') == 'residential' ? 'selected' : '' }}>Residential</option>
                         <option value="commercial" {{ old('type') == 'commercial' ? 'selected' : '' }}>Commercial</option>
+                        <option value="industrial" {{ old('type') == 'industrial' ? 'selected' : '' }}>Industrial</option>
                         <option value="agricultural" {{ old('type') == 'agricultural' ? 'selected' : '' }}>Agricultural</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="width">Width (optional)</label>
+                    <input type="number" id="width" name="width" value="{{ old('width') }}" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="length">Length (optional)</label>
+                    <input type="number" id="length" name="length" value="{{ old('length') }}" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="corner">Corner *</label>
+                    <select id="corner" name="corner" required>
+                        <option value="">Select</option>
+                        <option value="yes" {{ old('corner') == 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ old('corner') == 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="park_facing">Park Facing *</label>
+                    <select id="park_facing" name="park_facing" required>
+                        <option value="">Select</option>
+                        <option value="yes" {{ old('park_facing') == 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ old('park_facing') == 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="main_road_facing">Main Road Facing *</label>
+                    <select id="main_road_facing" name="main_road_facing" required>
+                        <option value="">Select</option>
+                        <option value="yes" {{ old('main_road_facing') == 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ old('main_road_facing') == 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="facing">Facing</label>
+                    <select id="facing" name="facing">
+                        <option value="">Select Facing</option>
+                        <option value="north" {{ old('facing') == 'north' ? 'selected' : '' }}>North</option>
+                        <option value="south" {{ old('facing') == 'south' ? 'selected' : '' }}>South</option>
+                        <option value="east" {{ old('facing') == 'east' ? 'selected' : '' }}>East</option>
+                        <option value="west" {{ old('facing') == 'west' ? 'selected' : '' }}>West</option>
+                        <option value="north-east" {{ old('facing') == 'north-east' ? 'selected' : '' }}>North-East</option>
+                        <option value="north-west" {{ old('facing') == 'north-west' ? 'selected' : '' }}>North-West</option>
+                        <option value="south-east" {{ old('facing') == 'south-east' ? 'selected' : '' }}>South-East</option>
+                        <option value="south-west" {{ old('facing') == 'south-west' ? 'selected' : '' }}>South-West</option>
                     </select>
                 </div>
 

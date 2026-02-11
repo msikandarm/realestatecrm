@@ -80,16 +80,9 @@ class PlotController extends Controller
         $selectedBlock = $request->get('block_id');
         $selectedStreet = $request->get('street_id');
 
-        $blocks = [];
-        $streets = [];
-
-        if ($selectedSociety) {
-            $blocks = Block::where('society_id', $selectedSociety)->active()->orderBy('name')->get();
-        }
-
-        if ($selectedBlock) {
-            $streets = Street::where('block_id', $selectedBlock)->active()->orderBy('name')->get();
-        }
+        // Pass full lists to client for cascading dropdowns (client will filter)
+        $blocks = Block::active()->orderBy('name')->get();
+        $streets = Street::active()->orderBy('name')->get();
 
         return view('plots.create', compact('societies', 'blocks', 'streets', 'selectedSociety', 'selectedBlock', 'selectedStreet'));
     }
@@ -119,6 +112,21 @@ class PlotController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
+
+        // Derive society_id from the provided street -> block -> society
+        $street = Street::with('block')->find($validated['street_id']);
+        if ($street && $street->block) {
+            $validated['society_id'] = $street->block->society_id;
+            $validated['block_id'] = $street->block->id;
+        }
+
+        // Fill legacy columns expected by older migrations
+        if (isset($validated['area'])) {
+            $validated['size'] = $validated['area'];
+        }
+        if (isset($validated['area_unit'])) {
+            $validated['size_unit'] = $validated['area_unit'];
+        }
 
         $plot = Plot::create($validated);
 
@@ -176,6 +184,23 @@ class PlotController extends Controller
         ]);
 
         $validated['updated_by'] = Auth::id();
+
+        // If street changed (or to ensure consistency), set society_id from street
+        if (isset($validated['street_id'])) {
+            $street = Street::with('block')->find($validated['street_id']);
+            if ($street && $street->block) {
+                $validated['society_id'] = $street->block->society_id;
+                $validated['block_id'] = $street->block->id;
+            }
+        }
+
+        // Ensure legacy columns remain populated for compatibility
+        if (isset($validated['area'])) {
+            $validated['size'] = $validated['area'];
+        }
+        if (isset($validated['area_unit'])) {
+            $validated['size_unit'] = $validated['area_unit'];
+        }
 
         $plot->update($validated);
 

@@ -105,12 +105,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Plot Management
-    Route::middleware(['permission:plots.view'])->group(function () {
-        Route::resource('plots', PlotController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
-    });
+    // Register create/store before the show route so 'plots/create' isn't captured by 'plots/{plot}'
     Route::middleware(['permission:plots.create'])->group(function () {
         Route::get('plots/create', [PlotController::class, 'create'])->name('plots.create');
         Route::post('plots', [PlotController::class, 'store'])->name('plots.store');
+    });
+    Route::middleware(['permission:plots.view'])->group(function () {
+        Route::resource('plots', PlotController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
     });
     Route::middleware(['permission:plots.edit'])->group(function () {
         Route::get('plots/{plot}/edit', [PlotController::class, 'edit'])->name('plots.edit');

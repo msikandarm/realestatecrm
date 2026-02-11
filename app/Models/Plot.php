@@ -13,8 +13,12 @@ class Plot extends Model
 
     protected $fillable = [
         'street_id',
+        'society_id',
+        'block_id',
         'plot_number',
         'plot_code',
+        'size',
+        'size_unit',
         'area',
         'area_unit',
         'length',

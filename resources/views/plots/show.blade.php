@@ -3,7 +3,7 @@
 @section('title', 'Plot #' . $plot->plot_number)
 
 @section('content')
-<div class="page-header">
+    <div class="page-header">
     <div class="breadcrumb">
         <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
         <span class="separator">/</span>
@@ -11,55 +11,64 @@
         <span class="separator">/</span>
         <span class="current">Plot #{{ $plot->plot_number }}</span>
     </div>
-    <div class="header-actions">
-        <h1 class="page-title">Plot #{{ $plot->plot_number }}</h1>
-        <div class="actions-group">
+    <div class="header-content">
+        <div class="header-left">
+            <h1 class="page-title">Plot #{{ $plot->plot_number }}</h1>
+            <p class="page-subtitle">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ $plot->street->name ?? 'N/A' }} | Block: <strong>{{ $plot->street->block->name ?? 'N/A' }}</strong>
+            </p>
+        </div>
+        <div class="header-actions">
             @can('plots.edit')
-            <a href="{{ route('plots.edit', $plot) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Edit
-            </a>
+                <a href="{{ route('plots.edit', $plot) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
             @endcan
             @can('plots.delete')
-            <form action="{{ route('plots.destroy', $plot) }}" method="POST" style="display: inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this plot?')">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </form>
+                <form action="{{ route('plots.destroy', $plot) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this plot?')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
             @endcan
         </div>
     </div>
 </div>
 
-<div class="content-layout">
-    <div class="main-content">
+<div class="details-layout">
+    <div class="main-column">
         <div class="stats-grid">
-            <x-stat-card
-                icon="fas fa-th"
-                value="{{ $plot->size }} {{ strtoupper($plot->unit) }}"
-                label="Plot Size"
-                bgColor="bg-info"
-            />
-            <x-stat-card
-                icon="fas fa-money-bill-wave"
-                value="PKR {{ number_format($plot->price) }}"
-                label="Price"
-                bgColor="bg-success"
-            />
-            <x-stat-card
-                icon="fas fa-tag"
-                value="{{ ucfirst($plot->status) }}"
-                label="Status"
-                bgColor="bg-warning"
-            />
+            @include('components.stat-card', [
+                'icon' => 'fas fa-th',
+                'value' => $plot->area . ' ' . $plot->area_unit,
+                'label' => 'Plot Size',
+                'bgColor' => 'info'
+            ])
+
+            @include('components.stat-card', [
+                'icon' => 'fas fa-money-bill-wave',
+                'value' => 'PKR ' . number_format($plot->total_price ?? 0),
+                'label' => 'Price',
+                'bgColor' => 'success'
+            ])
+
+            @include('components.stat-card', [
+                'icon' => 'fas fa-tag',
+                'value' => ucfirst($plot->status),
+                'label' => 'Status',
+                'bgColor' => 'warning'
+            ])
+
             @if($plot->type)
-            <x-stat-card
-                icon="fas fa-building"
-                value="{{ ucfirst($plot->type) }}"
-                label="Type"
-                bgColor="bg-purple"
-            />
+                @include('components.stat-card', [
+                    'icon' => 'fas fa-building',
+                    'value' => ucfirst($plot->type),
+                    'label' => 'Type',
+                    'bgColor' => 'primary'
+                ])
             @endif
         </div>
 
@@ -77,11 +86,11 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Size</span>
-                        <span class="info-value">{{ $plot->size }} {{ strtoupper($plot->unit) }}</span>
+                        <span class="info-value">{{ $plot->area }} {{ strtoupper($plot->area_unit) }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Price</span>
-                        <span class="info-value">PKR {{ number_format($plot->price) }}</span>
+                        <span class="info-value">PKR {{ number_format($plot->total_price ?? 0) }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Status</span>
@@ -142,7 +151,7 @@
         @endif
     </div>
 
-    <div class="sidebar">
+    <div class="sidebar-column">
         <div class="sidebar-card">
             <h4 class="sidebar-title">Status</h4>
             <div class="status-display status-{{ $plot->status }}">
@@ -152,14 +161,14 @@
 
         <div class="sidebar-card">
             <h4 class="sidebar-title">Quick Stats</h4>
-            <div class="quick-stats">
+                <div class="quick-stats">
                 <div class="stat-row">
                     <span class="stat-label">Size</span>
-                    <span class="stat-value">{{ $plot->size }} {{ strtoupper($plot->unit) }}</span>
+                    <span class="stat-value">{{ $plot->area }} {{ strtoupper($plot->area_unit) }}</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Price</span>
-                    <span class="stat-value">PKR {{ number_format($plot->price) }}</span>
+                    <span class="stat-value">PKR {{ number_format($plot->total_price ?? 0) }}</span>
                 </div>
                 @if($plot->deals)
                 <div class="stat-row">
@@ -207,8 +216,9 @@
 
 @push('styles')
 <style>
-    .content-layout { display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
-    .main-content { display: flex; flex-direction: column; gap: 25px; }
+    /* Page layout: left column = page sidebar, right column = main content (keeps global app sidebar on far left) */
+    .details-layout { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
+    .main-column { display: flex; flex-direction: column; gap: 20px; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .details-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
     .card-header { padding: 25px; border-bottom: 1px solid #e5e7eb; }
@@ -236,7 +246,8 @@
     .deal-date { font-size: 0.875rem; color: var(--gray-600); margin: 4px 0 0 0; }
     .deal-info { display: flex; gap: 20px; }
     .deal-item { display: flex; align-items: center; gap: 8px; color: var(--gray-700); font-size: 0.95rem; }
-    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+    .sidebar-column { display: flex; flex-direction: column; gap: 20px; }
+    .sidebar-column .sidebar-card { position: sticky; top: calc(var(--header-height) + 20px); }
     .sidebar-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); padding: 20px; }
     .sidebar-title { font-size: 0.95rem; font-weight: 700; color: var(--gray-900); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-display { padding: 12px 16px; background: var(--gray-100); border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -256,8 +267,8 @@
     .location-link { font-size: 0.95rem; font-weight: 600; color: var(--primary); text-decoration: none; }
     .location-link:hover { text-decoration: underline; }
     @media (max-width: 1024px) {
-        .content-layout { grid-template-columns: 1fr; }
-        .sidebar { order: 2; }
+        .details-layout { grid-template-columns: 1fr; }
+        .sidebar-column { order: 2; }
     }
     @media (max-width: 768px) {
         .stats-grid { grid-template-columns: 1fr; }
