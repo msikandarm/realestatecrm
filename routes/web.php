@@ -122,12 +122,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Property Management
-    Route::middleware(['permission:properties.view'])->group(function () {
-        Route::resource('properties', PropertyController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
-    });
+    // Register create/store before the show route so 'properties/create' isn't captured by 'properties/{property}'
     Route::middleware(['permission:properties.create'])->group(function () {
         Route::get('properties/create', [PropertyController::class, 'create'])->name('properties.create');
         Route::post('properties', [PropertyController::class, 'store'])->name('properties.store');
+    });
+    Route::middleware(['permission:properties.view'])->group(function () {
+        Route::resource('properties', PropertyController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
     });
     Route::middleware(['permission:properties.edit'])->group(function () {
         Route::get('properties/{property}/edit', [PropertyController::class, 'edit'])->name('properties.edit');

@@ -12,223 +12,102 @@
     <div class="header-actions">
         <h1 class="page-title">Properties</h1>
         @can('properties.create')
-        <a href="{{ route('properties.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Property
-        </a>
+            <a href="{{ route('properties.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Property
+            </a>
         @endcan
     </div>
 </div>
 
-<div class="stats-grid">
-    <x-stat-card
-        icon="fas fa-building"
-        value="{{ $stats['total'] ?? 0 }}"
-        label="Total Properties"
-        bgColor="bg-primary"
-    />
-    <x-stat-card
-        icon="fas fa-check-circle"
-        value="{{ $stats['for_sale'] ?? 0 }}"
-        label="For Sale"
-        bgColor="bg-success"
-    />
-    <x-stat-card
-        icon="fas fa-key"
-        value="{{ $stats['rented'] ?? 0 }}"
-        label="Rented"
-        bgColor="bg-warning"
-    />
-    <x-stat-card
-        icon="fas fa-hourglass-half"
-        value="{{ $stats['pending'] ?? 0 }}"
-        label="Pending"
-        bgColor="bg-info"
-    />
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-list"></i> All Properties
-        </h3>
-        <div class="card-actions">
-            <div class="view-toggle">
-                <button class="view-btn active" onclick="switchView('grid')">
-                    <i class="fas fa-th"></i>
-                </button>
-                <button class="view-btn" onclick="switchView('list')">
-                    <i class="fas fa-list"></i>
-                </button>
-            </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search properties..." onkeyup="filterProperties()">
-            </div>
-            <select id="typeFilter" onchange="filterProperties()">
-                <option value="">All Types</option>
-                <option value="house">House</option>
-                <option value="apartment">Apartment</option>
-                <option value="commercial">Commercial</option>
-                <option value="plot">Plot</option>
-            </select>
-            <select id="statusFilter" onchange="filterProperties()">
-                <option value="">All Status</option>
-                <option value="for_sale">For Sale</option>
-                <option value="rented">Rented</option>
-                <option value="sold">Sold</option>
-                <option value="pending">Pending</option>
-            </select>
+@if($properties->isEmpty())
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-building"></i>
         </div>
+        <h3 class="empty-title">No Properties Found</h3>
+        <p class="empty-description">Start adding properties to your inventory</p>
+        @can('properties.create')
+            <a href="{{ route('properties.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add First Property
+            </a>
+        @endcan
     </div>
-
-    <div class="card-body">
-        @if($properties->isEmpty())
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <h3 class="empty-title">No Properties Found</h3>
-                <p class="empty-description">Start adding properties to your inventory</p>
-                @can('properties.create')
-                <a href="{{ route('properties.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Add First Property
-                </a>
-                @endcan
-            </div>
-        @else
-            <div id="gridView" class="properties-grid">
+@else
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Details</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
                 @foreach($properties as $property)
-                <div class="property-card" data-type="{{ $property->type }}" data-status="{{ $property->status }}">
-                    <div class="property-image">
-                        @if($property->images && count($property->images) > 0)
-                            <img src="{{ asset('storage/' . $property->images[0]) }}" alt="{{ $property->title }}">
-                        @else
-                            <div class="no-image">
-                                <i class="fas fa-building"></i>
-                            </div>
-                        @endif
-                        <span class="property-badge badge-{{ $property->status }}">
-                            {{ ucfirst(str_replace('_', ' ', $property->status)) }}
-                        </span>
-                    </div>
-                    <div class="property-content">
-                        <h4 class="property-title">{{ $property->title }}</h4>
-                        <div class="property-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            {{ $property->location }}
+                <tr>
+                    <td>
+                        <div class="table-primary">
+                            <strong>{{ $property->title }}</strong>
+                            <span class="table-secondary">ID: #{{ $property->id }}</span>
                         </div>
-                        <div class="property-features">
+                    </td>
+                    <td>{{ ucfirst($property->type) }}</td>
+                    <td>
+                        <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                        {{ $property->location }}
+                    </td>
+                    <td>
+                        <div class="property-details-cell">
                             @if($property->bedrooms)
                                 <span><i class="fas fa-bed"></i> {{ $property->bedrooms }} Beds</span>
                             @endif
                             @if($property->bathrooms)
                                 <span><i class="fas fa-bath"></i> {{ $property->bathrooms }} Baths</span>
                             @endif
-                            @if($property->area)
-                                <span><i class="fas fa-ruler-combined"></i> {{ $property->area }} {{ $property->area_unit }}</span>
+                            @if($property->size)
+                                <span><i class="fas fa-ruler-combined"></i> {{ $property->size }} {{ $property->size_unit }}</span>
                             @endif
                         </div>
-                        <div class="property-footer">
-                            <div class="property-price">PKR {{ number_format($property->price) }}</div>
-                            <div class="property-actions">
-                                <a href="{{ route('properties.show', $property) }}" class="btn-icon" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                @can('properties.edit')
+                    </td>
+                    <td>
+                        <strong>PKR {{ number_format($property->price) }}</strong>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ $property->status == 'available' ? 'success' : ($property->status == 'rented' ? 'warning' : 'info') }}">
+                            {{ ucfirst(str_replace('_', ' ', $property->status)) }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ route('properties.show', $property) }}" class="btn-icon" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            @can('properties.edit')
                                 <a href="{{ route('properties.edit', $property) }}" class="btn-icon" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                @endcan
-                                @can('properties.delete')
-                                <button onclick="deleteProperty({{ $property->id }})" class="btn-icon text-danger" title="Delete">
+                            @endcan
+                            @can('properties.delete')
+                                <button onclick="deleteProperty({{ $property->id }})" class="btn-icon btn-danger" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                @endcan
-                            </div>
+                            @endcan
                         </div>
-                    </div>
-                </div>
+                    </td>
+                </tr>
                 @endforeach
-            </div>
+            </tbody>
+        </table>
+    </div>
 
-            <div id="listView" class="properties-list" style="display: none;">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Property</th>
-                            <th>Type</th>
-                            <th>Location</th>
-                            <th>Details</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="propertiesTableBody">
-                        @foreach($properties as $property)
-                        <tr data-type="{{ $property->type }}" data-status="{{ $property->status }}">
-                            <td>
-                                <div class="table-item">
-                                    <div class="item-image">
-                                        @if($property->images && count($property->images) > 0)
-                                            <img src="{{ asset('storage/' . $property->images[0]) }}" alt="{{ $property->title }}">
-                                        @else
-                                            <i class="fas fa-building"></i>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <div class="item-title">{{ $property->title }}</div>
-                                        <div class="item-subtitle">ID: #{{ $property->id }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="type-badge">{{ ucfirst($property->type) }}</span></td>
-                            <td>
-                                <i class="fas fa-map-marker-alt text-gray-400"></i>
-                                {{ $property->location }}
-                            </td>
-                            <td>
-                                <div class="property-details-cell">
-                                    @if($property->bedrooms)
-                                        <span><i class="fas fa-bed"></i> {{ $property->bedrooms }}</span>
-                                    @endif
-                                    @if($property->bathrooms)
-                                        <span><i class="fas fa-bath"></i> {{ $property->bathrooms }}</span>
-                                    @endif
-                                    @if($property->area)
-                                        <span><i class="fas fa-ruler-combined"></i> {{ $property->area }} {{ $property->area_unit }}</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td><strong>PKR {{ number_format($property->price) }}</strong></td>
-                            <td><span class="status-badge status-{{ $property->status }}">{{ ucfirst(str_replace('_', ' ', $property->status)) }}</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('properties.show', $property) }}" class="btn-icon" title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    @can('properties.edit')
-                                    <a href="{{ route('properties.edit', $property) }}" class="btn-icon" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    @endcan
-                                    @can('properties.delete')
-                                    <button onclick="deleteProperty({{ $property->id }})" class="btn-icon text-danger" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    @endcan
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination-wrapper">
-                {{ $properties->links() }}
-            </div>
-        @endif
+    <div class="pagination-wrapper">
+        {{ $properties->links() }}
+    </div>
+@endif
     </div>
 </div>
 

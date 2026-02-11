@@ -32,17 +32,35 @@
     </div>
 </div>
 
-@if($property->images && count($property->images) > 0)
+@php
+    // Normalize images: prefer relation `propertyImages`, fallback to `images` JSON
+    $images = [];
+    if(isset($property->propertyImages) && $property->propertyImages->count()) {
+        foreach($property->propertyImages as $pi) {
+            if(!empty($pi->image_path)) $images[] = $pi->image_path;
+        }
+    } elseif(is_array($property->images) && count($property->images)) {
+        foreach($property->images as $img) {
+            if(is_array($img) && isset($img['image_path'])) {
+                $images[] = $img['image_path'];
+            } elseif(is_string($img)) {
+                $images[] = $img;
+            }
+        }
+    }
+@endphp
+
+@if(count($images) > 0)
 <div class="property-gallery">
     <div class="main-image">
-        <img src="{{ asset('storage/' . $property->images[0]) }}" alt="{{ $property->title }}" id="mainImage">
+        <img src="{{ asset('storage/' . $images[0]) }}" alt="{{ $property->title }}" id="mainImage">
         <span class="status-badge-large status-{{ $property->status }}">
             {{ ucfirst(str_replace('_', ' ', $property->status)) }}
         </span>
     </div>
-    @if(count($property->images) > 1)
+    @if(count($images) > 1)
     <div class="thumbnail-strip">
-        @foreach($property->images as $index => $image)
+        @foreach($images as $index => $image)
         <div class="thumbnail {{ $index === 0 ? 'active' : '' }}" onclick="changeImage('{{ asset('storage/' . $image) }}', this)">
             <img src="{{ asset('storage/' . $image) }}" alt="Thumbnail {{ $index + 1 }}">
         </div>
@@ -52,8 +70,8 @@
 </div>
 @endif
 
-<div class="content-layout">
-    <div class="main-content">
+<div class="details-layout">
+    <div class="main-column">
         <div class="stats-grid">
             <x-stat-card
                 icon="fas fa-money-bill-wave"
@@ -63,7 +81,7 @@
             />
             <x-stat-card
                 icon="fas fa-ruler-combined"
-                value="{{ $property->area }} {{ strtoupper($property->area_unit) }}"
+                value="{{ $property->size }} {{ strtoupper(str_replace('_',' ', $property->size_unit)) }}"
                 label="Area"
                 bgColor="bg-info"
             />
@@ -111,7 +129,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Area</span>
-                        <span class="info-value">{{ $property->area }} {{ strtoupper($property->area_unit) }}</span>
+                        <span class="info-value">{{ $property->size }} {{ strtoupper(str_replace('_',' ', $property->size_unit)) }}</span>
                     </div>
                     @if($property->bedrooms)
                     <div class="info-item">
@@ -174,7 +192,7 @@
         @endif
     </div>
 
-    <div class="sidebar">
+    <div class="sidebar-column">
         <div class="sidebar-card">
             <h4 class="sidebar-title">Status</h4>
             <div class="status-display status-{{ $property->status }}">
@@ -195,7 +213,7 @@
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Area</span>
-                    <span class="stat-value">{{ $property->area }} {{ strtoupper($property->area_unit) }}</span>
+                    <span class="stat-value">{{ $property->size }} {{ strtoupper(str_replace('_',' ', $property->size_unit)) }}</span>
                 </div>
                 @if($property->deals)
                 <div class="stat-row">
@@ -231,8 +249,8 @@
     .thumbnail { width: 100px; height: 100px; border-radius: 8px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; }
     .thumbnail:hover, .thumbnail.active { border-color: var(--primary); }
     .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
-    .content-layout { display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
-    .main-content { display: flex; flex-direction: column; gap: 25px; }
+    .details-layout { display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
+    .main-column { display: flex; flex-direction: column; gap: 25px; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .details-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
     .card-header { padding: 25px; border-bottom: 1px solid #e5e7eb; }
@@ -260,7 +278,7 @@
     .deal-date { font-size: 0.875rem; color: var(--gray-600); margin: 4px 0 0 0; }
     .deal-info { display: flex; gap: 20px; flex-wrap: wrap; }
     .deal-item { display: flex; align-items: center; gap: 8px; color: var(--gray-700); font-size: 0.95rem; }
-    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+    .sidebar-column { display: flex; flex-direction: column; gap: 20px; }
     .sidebar-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); padding: 20px; }
     .sidebar-title { font-size: 0.95rem; font-weight: 700; color: var(--gray-900); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-display { padding: 12px 16px; background: var(--gray-100); border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -274,7 +292,7 @@
     .agent-name { font-weight: 600; color: var(--gray-900); margin: 0 0 4px 0; }
     .agent-phone { font-size: 0.9rem; color: var(--gray-600); margin: 0; display: flex; align-items: center; gap: 6px; }
     @media (max-width: 1024px) {
-        .content-layout { grid-template-columns: 1fr; }
+        .details-layout { grid-template-columns: 1fr; }
         .main-image { height: 350px; }
     }
     @media (max-width: 768px) {

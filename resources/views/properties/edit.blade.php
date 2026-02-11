@@ -51,6 +51,45 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="society_id">Society</label>
+                    <select id="society_id" name="society_id">
+                        <option value="">Select Society</option>
+                        @foreach($societies as $society)
+                            <option value="{{ $society->id }}" {{ old('society_id', $property->society_id) == $society->id ? 'selected' : '' }}>{{ $society->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="block_id">Block</label>
+                    <select id="block_id" name="block_id">
+                        <option value="">Select Block</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="street_id">Street</label>
+                    <select id="street_id" name="street_id">
+                        <option value="">Select Street</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="plot_id">Plot (optional)</label>
+                    <select id="plot_id" name="plot_id">
+                        <option value="">Select Plot</option>
+                        @foreach($plots as $plot)
+                            <option value="{{ $plot->id }}" {{ old('plot_id', $property->plot_id) == $plot->id ? 'selected' : '' }}>{{ $plot->reference_code ?? 'Plot #' . $plot->id }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reference_code">Reference Code *</label>
+                    <input type="text" id="reference_code" name="reference_code" value="{{ old('reference_code', $property->reference_code) }}" placeholder="Unique reference code" required>
+                </div>
+
+                <div class="form-group">
                     <label for="type">Property Type *</label>
                     <select id="type" name="type" required>
                         <option value="">Select Type</option>
@@ -62,12 +101,34 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="property_for">Property For *</label>
+                    <select id="property_for" name="property_for" required>
+                        <option value="">Select</option>
+                        <option value="sale" {{ old('property_for', $property->property_for) == 'sale' ? 'selected' : '' }}>Sale</option>
+                        <option value="rent" {{ old('property_for', $property->property_for) == 'rent' ? 'selected' : '' }}>Rent</option>
+                        <option value="both" {{ old('property_for', $property->property_for) == 'both' ? 'selected' : '' }}>Both</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="condition">Condition *</label>
+                    <select id="condition" name="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="new" {{ old('condition', $property->condition) == 'new' ? 'selected' : '' }}>New</option>
+                        <option value="old" {{ old('condition', $property->condition) == 'old' ? 'selected' : '' }}>Old</option>
+                        <option value="under_construction" {{ old('condition', $property->condition) == 'under_construction' ? 'selected' : '' }}>Under Construction</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="status">Status *</label>
                     <select id="status" name="status" required>
-                        <option value="for_sale" {{ old('status', $property->status) == 'for_sale' ? 'selected' : '' }}>For Sale</option>
+                        <option value="available" {{ old('status', $property->status) == 'available' ? 'selected' : '' }}>Available</option>
                         <option value="rented" {{ old('status', $property->status) == 'rented' ? 'selected' : '' }}>Rented</option>
                         <option value="sold" {{ old('status', $property->status) == 'sold' ? 'selected' : '' }}>Sold</option>
-                        <option value="pending" {{ old('status', $property->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="under_negotiation" {{ old('status', $property->status) == 'under_negotiation' ? 'selected' : '' }}>Under Negotiation</option>
+                        <option value="reserved" {{ old('status', $property->status) == 'reserved' ? 'selected' : '' }}>Reserved</option>
+                        <option value="off_market" {{ old('status', $property->status) == 'off_market' ? 'selected' : '' }}>Off Market</option>
                     </select>
                 </div>
 
@@ -111,17 +172,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="area">Area *</label>
-                    <input type="number" id="area" name="area" value="{{ old('area', $property->area) }}" placeholder="e.g., 5" step="0.01" required>
+                    <label for="size">Area / Size *</label>
+                    <input type="number" id="size" name="size" value="{{ old('size', $property->size) }}" placeholder="e.g., 5" step="0.01" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="area_unit">Area Unit *</label>
-                    <select id="area_unit" name="area_unit" required>
-                        <option value="marla" {{ old('area_unit', $property->area_unit) == 'marla' ? 'selected' : '' }}>Marla</option>
-                        <option value="kanal" {{ old('area_unit', $property->area_unit) == 'kanal' ? 'selected' : '' }}>Kanal</option>
-                        <option value="sqft" {{ old('area_unit', $property->area_unit) == 'sqft' ? 'selected' : '' }}>Square Feet</option>
-                        <option value="sqyd" {{ old('area_unit', $property->area_unit) == 'sqyd' ? 'selected' : '' }}>Square Yards</option>
+                    <label for="size_unit">Area Unit *</label>
+                    <select id="size_unit" name="size_unit" required>
+                        <option value="marla" {{ old('size_unit', $property->size_unit) == 'marla' ? 'selected' : '' }}>Marla</option>
+                        <option value="kanal" {{ old('size_unit', $property->size_unit) == 'kanal' ? 'selected' : '' }}>Kanal</option>
+                        <option value="sq_ft" {{ old('size_unit', $property->size_unit) == 'sq_ft' ? 'selected' : '' }}>Square Feet</option>
+                        <option value="sq_m" {{ old('size_unit', $property->size_unit) == 'sq_m' ? 'selected' : '' }}>Square Meter</option>
                     </select>
                 </div>
             </div>
@@ -138,11 +199,29 @@
                 </div>
             </div>
 
-            @if($property->images && count($property->images) > 0)
+            @php
+                // Normalize current images: prefer relation propertyImages, fallback to images JSON
+                $currentImages = [];
+                if(isset($property->propertyImages) && $property->propertyImages->count()) {
+                    foreach($property->propertyImages as $pi) {
+                        if(!empty($pi->image_path)) $currentImages[] = $pi->image_path;
+                    }
+                } elseif(is_array($property->images) && count($property->images)) {
+                    foreach($property->images as $img) {
+                        if(is_array($img) && isset($img['image_path'])) {
+                            $currentImages[] = $img['image_path'];
+                        } elseif(is_string($img)) {
+                            $currentImages[] = $img;
+                        }
+                    }
+                }
+            @endphp
+
+            @if(count($currentImages) > 0)
             <div class="current-images">
                 <h4>Current Images</h4>
                 <div class="image-preview-grid">
-                    @foreach($property->images as $index => $image)
+                    @foreach($currentImages as $index => $image)
                     <div class="preview-item">
                         <img src="{{ asset('storage/' . $image) }}" alt="Property Image">
                         <button type="button" class="remove-btn" onclick="markForDeletion({{ $index }})">
@@ -282,6 +361,60 @@ function updateNewPreview() {
     newFiles.forEach(file => dataTransfer.items.add(file));
     document.getElementById('new_images').files = dataTransfer.files;
 }
+
+// Dependent selects: blocks and streets (edit view)
+const blocksUrl = "{{ route('blocks.by-society') }}";
+const streetsUrl = "{{ route('streets.by-block') }}";
+
+async function loadBlocks(societyId, selectedBlock = null) {
+    const blockSelect = document.getElementById('block_id');
+    blockSelect.innerHTML = '<option value="">Select Block</option>';
+    if(!societyId) return;
+    const res = await fetch(blocksUrl + '?society_id=' + societyId);
+    if(!res.ok) return;
+    const data = await res.json();
+    data.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.text = b.name || b.title || ('Block ' + b.id);
+        if(selectedBlock && selectedBlock == b.id) opt.selected = true;
+        blockSelect.appendChild(opt);
+    });
+}
+
+async function loadStreets(blockId, selectedStreet = null) {
+    const streetSelect = document.getElementById('street_id');
+    streetSelect.innerHTML = '<option value="">Select Street</option>';
+    if(!blockId) return;
+    const res = await fetch(streetsUrl + '?block_id=' + blockId);
+    if(!res.ok) return;
+    const data = await res.json();
+    data.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.text = s.name || s.title || ('Street ' + s.id);
+        if(selectedStreet && selectedStreet == s.id) opt.selected = true;
+        streetSelect.appendChild(opt);
+    });
+}
+
+document.getElementById('society_id')?.addEventListener('change', function() {
+    loadBlocks(this.value);
+});
+
+document.getElementById('block_id')?.addEventListener('change', function() {
+    loadStreets(this.value);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const s = document.getElementById('society_id');
+    const b = document.getElementById('block_id');
+    if(s && s.value) {
+        loadBlocks(s.value, '{{ old('block_id', $property->block_id) }}').then(() => {
+            if(b && b.value) loadStreets(b.value, '{{ old('street_id', $property->street_id) }}');
+        });
+    }
+});
 </script>
 @endpush
 @endsection
