@@ -157,6 +157,41 @@
             font-weight: 600;
         }
 
+        /* Submenu for grouped items like Cities */
+        .menu-item.has-sub {
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* submenu placed as sibling after the parent anchor */
+        .menu-item.has-sub + .submenu {
+            display: none;
+            padding-left: 36px;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .menu-item.has-sub.active + .submenu {
+            display: flex;
+        }
+
+        .submenu-item {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .submenu-item.active {
+            background: rgba(102,126,234,0.12);
+            color: white;
+            font-weight: 600;
+        }
+
         /* Main Content */
         .main-wrapper {
             margin-left: var(--sidebar-width);
@@ -442,6 +477,12 @@
                     <i class="fas fa-road"></i>
                     <span>Streets</span>
                 </a>
+                @can('cities.view')
+                <a href="{{ route('cities.index') }}" class="menu-item {{ request()->routeIs('cities.*') ? 'active' : '' }}">
+                    <i class="fas fa-map-pin"></i>
+                    <span>Cities</span>
+                </a>
+                @endcan
                 <a href="{{ route('plots.index') }}" class="menu-item {{ request()->routeIs('plots.*') ? 'active' : '' }}">
                     <i class="fas fa-map-marked-alt"></i>
                     <span>Plots</span>

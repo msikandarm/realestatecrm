@@ -33,12 +33,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Society Management
-    Route::middleware(['permission:societies.view'])->group(function () {
-        Route::resource('societies', SocietyController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
-    });
+    // Register specific create/store routes before the resource so the
+    // wildcard `societies/{society}` doesn't capture the `create` URI.
     Route::middleware(['permission:societies.create'])->group(function () {
         Route::get('societies/create', [SocietyController::class, 'create'])->name('societies.create');
         Route::post('societies', [SocietyController::class, 'store'])->name('societies.store');
+    });
+    Route::middleware(['permission:societies.view'])->group(function () {
+        Route::resource('societies', SocietyController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
     });
     Route::middleware(['permission:societies.edit'])->group(function () {
         Route::get('societies/{society}/edit', [SocietyController::class, 'edit'])->name('societies.edit');
@@ -46,6 +48,22 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:societies.delete'])->group(function () {
         Route::delete('societies/{society}', [SocietyController::class, 'destroy'])->name('societies.destroy');
+    });
+
+    // City Management
+    Route::middleware(['permission:cities.view'])->group(function () {
+        Route::get('cities', [\App\Http\Controllers\CityController::class, 'index'])->name('cities.index');
+    });
+    Route::middleware(['permission:cities.create'])->group(function () {
+        Route::get('cities/create', [\App\Http\Controllers\CityController::class, 'create'])->name('cities.create');
+        Route::post('cities', [\App\Http\Controllers\CityController::class, 'store'])->name('cities.store');
+    });
+    Route::middleware(['permission:cities.edit'])->group(function () {
+        Route::get('cities/{city}/edit', [\App\Http\Controllers\CityController::class, 'edit'])->name('cities.edit');
+        Route::put('cities/{city}', [\App\Http\Controllers\CityController::class, 'update'])->name('cities.update');
+    });
+    Route::middleware(['permission:cities.delete'])->group(function () {
+        Route::delete('cities/{city}', [\App\Http\Controllers\CityController::class, 'destroy'])->name('cities.destroy');
     });
 
     // Block Management

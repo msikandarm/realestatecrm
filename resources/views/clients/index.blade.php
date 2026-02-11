@@ -1,15 +1,17 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Clients')
-@section('page-title', 'Clients Management')
-
-@section('breadcrumb')
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <span>/</span>
-    <span>Clients</span>
-@endsection
 
 @section('content')
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Clients</span>
+    </div>
+    <h1 class="page-title">Clients Management</h1>
+    <p class="page-subtitle">Manage client records</p>
+</div>
     <!-- Filter & Search Bar -->
     <div class="card" style="margin-bottom: 20px;">
         <div class="card-body">

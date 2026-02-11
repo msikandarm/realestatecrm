@@ -1,15 +1,17 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Reports')
-@section('page-title', 'Reports & Analytics')
-
-@section('breadcrumb')
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <span>/</span>
-    <span>Reports</span>
-@endsection
 
 @section('content')
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Reports</span>
+    </div>
+    <h1 class="page-title">Reports & Analytics</h1>
+    <p class="page-subtitle">System-wide reports and analytics</p>
+</div>
     <!-- Report Type Selector -->
     <div class="card" style="margin-bottom: 20px;">
         <div class="card-body">

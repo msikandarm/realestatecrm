@@ -58,6 +58,9 @@ class PermissionSeeder extends Seeder
             // Report Management
             'reports.view', 'reports.export', 'reports.financial',
 
+            // City Management
+            'cities.view', 'cities.create', 'cities.edit', 'cities.delete',
+
             // Follow-up Management
             'followups.view', 'followups.create', 'followups.edit', 'followups.delete',
 

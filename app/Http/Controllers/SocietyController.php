@@ -64,7 +64,10 @@ class SocietyController extends Controller
      */
     public function create()
     {
-        return view('societies.create');
+        // Use dedicated City model if available so select options use real ids.
+        $cities = \App\Models\City::orderBy('name')->get();
+
+        return view('societies.create', compact('cities'));
     }
 
     /**
@@ -76,7 +79,7 @@ class SocietyController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|unique:societies,code|max:50',
             'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
+            'city_id' => 'nullable|integer|exists:cities,id',
             'province' => 'nullable|string|max:100',
             'total_area' => 'nullable|numeric|min:0',
             'area_unit' => 'nullable|in:marla,kanal,acre',
@@ -94,6 +97,14 @@ class SocietyController extends Controller
         if ($request->hasFile('map_file')) {
             $validated['map_file'] = $request->file('map_file')->store('societies/maps', 'public');
         }
+
+        // If city_id provided, resolve to city name in existing societies table
+        if (!empty($validated['city_id'])) {
+            $city = \App\Models\City::find($validated['city_id']);
+            $validated['city'] = $city ? $city->name : null;
+        }
+
+        unset($validated['city_id']);
 
         $validated['created_by'] = Auth::id();
 
@@ -140,7 +151,7 @@ class SocietyController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50|unique:societies,code,' . $society->id,
             'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
+            'city_id' => 'nullable|integer|exists:cities,id',
             'province' => 'nullable|string|max:100',
             'total_area' => 'nullable|numeric|min:0',
             'area_unit' => 'nullable|in:marla,kanal,acre',
@@ -162,6 +173,12 @@ class SocietyController extends Controller
             }
             $validated['map_file'] = $request->file('map_file')->store('societies/maps', 'public');
         }
+
+        if (!empty($validated['city_id'])) {
+            $city = \App\Models\City::find($validated['city_id']);
+            $validated['city'] = $city ? $city->name : null;
+        }
+        unset($validated['city_id']);
 
         $validated['updated_by'] = Auth::id();
 

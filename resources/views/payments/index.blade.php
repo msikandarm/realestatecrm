@@ -1,15 +1,17 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Payments')
-@section('page-title', 'Payments')
-
-@section('breadcrumb')
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <span>/</span>
-    <span>Payments</span>
-@endsection
 
 @section('content')
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Payments</span>
+    </div>
+    <h1 class="page-title">Payments</h1>
+    <p class="page-subtitle">Manage payments and receipts</p>
+</div>
     <!-- Filter & Search Bar -->
     <div class="card" style="margin-bottom: 20px;">
         <div class="card-body">

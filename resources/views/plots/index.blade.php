@@ -1,15 +1,17 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Plots')
-@section('page-title', 'Plots Management')
-
-@section('breadcrumb')
-    <a href="{{ route('dashboard') }}">Dashboard</a>
-    <span>/</span>
-    <span>Plots</span>
-@endsection
 
 @section('content')
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Plots</span>
+    </div>
+    <h1 class="page-title">Plots Management</h1>
+    <p class="page-subtitle">Manage plots across societies</p>
+</div>
     <!-- Filter & Search Bar -->
     <div class="card" style="margin-bottom: 20px;">
         <div class="card-body">

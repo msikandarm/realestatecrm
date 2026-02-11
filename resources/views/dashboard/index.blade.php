@@ -1,14 +1,15 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard')
-
-@section('breadcrumb')
-    <i class="fas fa-home"></i>
-    <span>Dashboard</span>
-@endsection
 
 @section('content')
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+    </div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Overview & quick stats</p>
+</div>
     <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card primary">
