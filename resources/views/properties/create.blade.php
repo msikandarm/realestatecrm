@@ -225,7 +225,7 @@
     .form-section { padding: 30px; border-bottom: 1px solid #e5e7eb; }
     .form-section:last-child { border-bottom: none; }
     .section-header { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
-    .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--success), #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
+    .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
     .section-title { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0; }
     .section-description { font-size: 0.875rem; color: var(--gray-600); margin: 4px 0 0 0; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
@@ -233,7 +233,7 @@
     .form-group.full-width { grid-column: 1 / -1; }
     .form-group label { font-weight: 600; color: var(--gray-700); margin-bottom: 8px; font-size: 0.95rem; }
     .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; transition: all 0.3s; font-family: inherit; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--success); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
     .form-group textarea { resize: vertical; }
     .help-text { font-size: 0.85rem; color: var(--gray-600); margin-top: 6px; }
     .image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }

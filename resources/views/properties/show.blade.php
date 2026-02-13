@@ -11,29 +11,34 @@
         <span class="separator">/</span>
         <span class="current">{{ $property->title }}</span>
     </div>
-    <div class="header-actions">
-        <h1 class="page-title">{{ $property->title }}</h1>
-        <div class="actions-group">
+    <div class="header-content">
+        <div class="header-left">
+            <h1 class="page-title">{{ $property->title }}</h1>
+            <p class="page-subtitle">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ $property->location ?? 'N/A' }} | Ref: <strong>{{ $property->reference_code ?? '#'.$property->id }}</strong>
+            </p>
+        </div>
+        <div class="header-actions">
             @can('properties.edit')
-            <a href="{{ route('properties.edit', $property) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Edit
-            </a>
+                <a href="{{ route('properties.edit', $property) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Property
+                </a>
             @endcan
             @can('properties.delete')
-            <form action="{{ route('properties.destroy', $property) }}" method="POST" style="display: inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this property?')">
+                <button onclick="if(confirm('Delete this property?')) document.getElementById('deletePropertyForm').submit();" class="btn btn-danger">
                     <i class="fas fa-trash"></i> Delete
                 </button>
-            </form>
+                <form id="deletePropertyForm" action="{{ route('properties.destroy', $property) }}" method="POST" style="display:none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
             @endcan
         </div>
     </div>
 </div>
 
 @php
-    // Normalize images: prefer relation `propertyImages`, fallback to `images` JSON
     $images = [];
     if(isset($property->propertyImages) && $property->propertyImages->count()) {
         foreach($property->propertyImages as $pi) {
@@ -71,81 +76,60 @@
 @endif
 
 <div class="details-layout">
+    <!-- Main Column -->
     <div class="main-column">
-        <div class="stats-grid">
-            <x-stat-card
-                icon="fas fa-money-bill-wave"
-                value="PKR {{ number_format($property->price) }}"
-                label="Price"
-                bgColor="bg-success"
-            />
-            <x-stat-card
-                icon="fas fa-ruler-combined"
-                value="{{ $property->size }} {{ strtoupper(str_replace('_',' ', $property->size_unit)) }}"
-                label="Area"
-                bgColor="bg-info"
-            />
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            @include('components.stat-card', ['icon' => 'fas fa-money-bill-wave', 'value' => 'PKR '.number_format($property->price), 'label' => 'Price', 'bgColor' => 'success'])
+            @include('components.stat-card', ['icon' => 'fas fa-ruler-combined', 'value' => $property->size.' '.strtoupper(str_replace('_',' ', $property->size_unit)), 'label' => 'Area', 'bgColor' => 'info'])
             @if($property->bedrooms)
-            <x-stat-card
-                icon="fas fa-bed"
-                value="{{ $property->bedrooms }}"
-                label="Bedrooms"
-                bgColor="bg-purple"
-            />
+                @include('components.stat-card', ['icon' => 'fas fa-bed', 'value' => $property->bedrooms, 'label' => 'Bedrooms', 'bgColor' => 'primary'])
             @endif
             @if($property->bathrooms)
-            <x-stat-card
-                icon="fas fa-bath"
-                value="{{ $property->bathrooms }}"
-                label="Bathrooms"
-                bgColor="bg-warning"
-            />
+                @include('components.stat-card', ['icon' => 'fas fa-bath', 'value' => $property->bathrooms, 'label' => 'Bathrooms', 'bgColor' => 'warning'])
             @endif
         </div>
 
         <div class="details-card">
             <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-info-circle"></i> Property Details
-                </h3>
+                <h3 class="card-title"><i class="fas fa-info-circle"></i> Property Details</h3>
             </div>
             <div class="card-body">
                 <div class="info-grid">
                     <div class="info-item">
-                        <span class="info-label">Property Type</span>
-                        <span class="info-value">{{ ucfirst($property->type) }}</span>
+                        <label>Property Type</label>
+                        <value>{{ ucfirst($property->type) }}</value>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Status</span>
-                        <span class="status-badge status-{{ $property->status }}">{{ ucfirst(str_replace('_', ' ', $property->status)) }}</span>
+                        <label>Status</label>
+                        <value><span class="badge badge-{{ $property->status == 'available' ? 'success' : ($property->status == 'rented' ? 'warning' : 'info') }}">{{ ucfirst(str_replace('_',' ', $property->status)) }}</span></value>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Location</span>
-                        <span class="info-value"><i class="fas fa-map-marker-alt"></i> {{ $property->location }}</span>
+                        <label>Location</label>
+                        <value><i class="fas fa-map-marker-alt text-primary"></i> {{ $property->location ?? 'N/A' }}</value>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Price</span>
-                        <span class="info-value">PKR {{ number_format($property->price) }}</span>
+                        <label>Price</label>
+                        <value>PKR {{ number_format($property->price) }}</value>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Area</span>
-                        <span class="info-value">{{ $property->size }} {{ strtoupper(str_replace('_',' ', $property->size_unit)) }}</span>
+                        <label>Area</label>
+                        <value>{{ $property->size }} {{ strtoupper(str_replace('_',' ', $property->size_unit)) }}</value>
                     </div>
                     @if($property->bedrooms)
                     <div class="info-item">
-                        <span class="info-label">Bedrooms</span>
-                        <span class="info-value">{{ $property->bedrooms }}</span>
+                        <label>Bedrooms</label>
+                        <value>{{ $property->bedrooms }}</value>
                     </div>
                     @endif
                     @if($property->bathrooms)
                     <div class="info-item">
-                        <span class="info-label">Bathrooms</span>
-                        <span class="info-value">{{ $property->bathrooms }}</span>
+                        <label>Bathrooms</label>
+                        <value>{{ $property->bathrooms }}</value>
                     </div>
                     @endif
                     <div class="info-item">
-                        <span class="info-label">Listed On</span>
-                        <span class="info-value">{{ $property->created_at->format('M d, Y') }}</span>
+                        <label>Listed On</label>
+                        <value>{{ $property->created_at->format('M d, Y') }}</value>
                     </div>
                 </div>
 
@@ -161,9 +145,7 @@
         @if($property->deals && $property->deals->count() > 0)
         <div class="related-section">
             <div class="section-header-row">
-                <h3 class="section-title">
-                    <i class="fas fa-handshake"></i> Related Deals
-                </h3>
+                <h3 class="section-title"><i class="fas fa-handshake"></i> Related Deals</h3>
             </div>
             <div class="deals-grid">
                 @foreach($property->deals as $deal)
@@ -258,8 +240,8 @@
     .card-body { padding: 30px; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
     .info-item { display: flex; flex-direction: column; gap: 8px; }
-    .info-label { font-size: 0.875rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-value { font-size: 1.1rem; font-weight: 600; color: var(--gray-900); }
+    .info-item label { font-size: 0.875rem; font-weight: 600; color: var(--gray-600); }
+    .info-item value { font-size: 1.1rem; font-weight: 600; color: var(--gray-900); }
     .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.875rem; font-weight: 600; }
     .status-for_sale, .status-badge-large.status-for_sale { background: #d1fae5; color: #065f46; }
     .status-rented, .status-badge-large.status-rented { background: #fef3c7; color: #92400e; }
