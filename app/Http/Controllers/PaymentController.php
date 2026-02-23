@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:payments.view')->only(['index', 'show', 'receipt']);
+        $this->middleware('can:payments.create')->only(['create', 'store', 'addPayment']);
+        $this->middleware('can:payments.edit')->only(['edit', 'update', 'clearPayment', 'bouncePayment']);
+        $this->middleware('can:payments.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the payments.
      */

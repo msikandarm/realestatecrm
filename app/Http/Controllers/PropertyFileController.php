@@ -14,6 +14,16 @@ use Carbon\Carbon;
 
 class PropertyFileController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:files.view')->only(['index', 'show', 'statement', 'paymentReceipt']);
+        $this->middleware('can:files.create')->only(['create', 'store']);
+        $this->middleware('can:files.edit')->only(['edit', 'update', 'syncPaidAmount']);
+        $this->middleware('can:files.transfer')->only(['transfer']);
+        $this->middleware('can:files.delete')->only(['destroy']);
+        $this->middleware('can:files.manage')->only(['markAsDefaulted', 'cancelFile']);
+    }
+
     /**
      * Display a listing of the property files.
      */

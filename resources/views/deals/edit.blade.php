@@ -6,12 +6,13 @@
 <div class="page-header">
     <div class="breadcrumb">
         <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-        <span class="separator">/</span>
+        <i class="fas fa-chevron-right"></i>
         <a href="{{ route('deals.index') }}">Deals</a>
-        <span class="separator">/</span>
-        <span class="current">Edit #{{ $deal->id }}</span>
+        <i class="fas fa-chevron-right"></i>
+        <span>Edit #{{ $deal->id }}</span>
     </div>
     <h1 class="page-title">Edit Deal #{{ $deal->id }}</h1>
+    <p class="page-subtitle">Update deal information</p>
 </div>
 
 @if($errors->any())
@@ -31,6 +32,9 @@
 <form method="POST" action="{{ route('deals.update', $deal) }}">
     @csrf
     @method('PUT')
+    <input type="hidden" id="dealable_type" name="dealable_type" value="{{ old('dealable_type', $deal->dealable_type) }}">
+    <input type="hidden" id="dealable_id" name="dealable_id" value="{{ old('dealable_id', $deal->dealable_id) }}">
+    <input type="hidden" id="commission_percentage" name="commission_percentage" value="{{ old('commission_percentage', $deal->commission_percentage) }}">
 
     <div class="form-card">
         <div class="form-section">
@@ -95,8 +99,8 @@
                     <select id="dealer_id" name="dealer_id" required onchange="updateCommission()">
                         <option value="">Select Dealer</option>
                         @foreach($dealers as $dealer)
-                            <option value="{{ $dealer->id }}" data-commission="{{ $dealer->commission_rate }}" {{ old('dealer_id', $deal->dealer_id) == $dealer->id ? 'selected' : '' }}>
-                                {{ $dealer->user->name ?? 'Dealer' }} - {{ $dealer->commission_rate }}%
+                            <option value="{{ $dealer->id }}" data-commission="{{ $dealer->dealerProfile->default_commission_rate ?? $dealer->commission_rate ?? 0 }}" {{ old('dealer_id', $deal->dealer_id) == $dealer->id ? 'selected' : '' }}>
+                                {{ $dealer->name ?? ($dealer->user->name ?? 'Dealer') }} - {{ $dealer->dealerProfile->default_commission_rate ?? $dealer->commission_rate ?? 0 }}%
                             </option>
                         @endforeach
                     </select>
@@ -104,12 +108,33 @@
 
                 <div class="form-group">
                     <label for="amount">Deal Amount (PKR) *</label>
-                    <input type="number" id="amount" name="amount" value="{{ old('amount', $deal->amount) }}" placeholder="e.g., 5000000" step="0.01" required onkeyup="updateCommission()">
+                    <input type="number" id="amount" name="deal_amount" value="{{ old('deal_amount', $deal->deal_amount ?? $deal->deal_amount) }}" placeholder="e.g., 5000000" step="0.01" required onkeyup="updateCommission()">
                 </div>
 
                 <div class="form-group">
                     <label for="commission_amount">Commission Amount (PKR)</label>
                     <input type="number" id="commission_amount" name="commission_amount" value="{{ old('commission_amount', $deal->commission_amount) }}" placeholder="Auto-calculated" step="0.01" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_type">Payment Type *</label>
+                    <select id="payment_type" name="payment_type" required onchange="togglePaymentType()">
+                        <option value="cash" {{ old('payment_type', $deal->payment_type) == 'cash' ? 'selected' : '' }}>Cash</option>
+                        <option value="installment" {{ old('payment_type', $deal->payment_type) == 'installment' ? 'selected' : '' }}>Installment</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="installment_group" style="display: none;">
+                    <label for="installment_months">Installment Months</label>
+                    <input type="number" id="installment_months" name="installment_months" value="{{ old('installment_months', $deal->installment_months) }}" min="1">
+
+                    <label for="down_payment" style="margin-top:8px;">Down Payment (PKR)</label>
+                    <input type="number" id="down_payment" name="down_payment" value="{{ old('down_payment', $deal->down_payment) }}" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="deal_date">Deal Date *</label>
+                    <input type="date" id="deal_date" name="deal_date" value="{{ old('deal_date', optional($deal->deal_date)->format('Y-m-d')) }}" required>
                 </div>
 
                 <div class="form-group">
@@ -211,7 +236,26 @@ function updateCommission() {
 document.addEventListener('DOMContentLoaded', function() {
     toggleDealType();
     updateCommission();
+    togglePaymentType();
 });
+
+function setDealable(type, id) {
+    const t = document.getElementById('dealable_type');
+    const i = document.getElementById('dealable_id');
+    if (t) t.value = type || '';
+    if (i) i.value = id || '';
+}
+
+function togglePaymentType() {
+    const paymentType = document.getElementById('payment_type');
+    const installmentGroup = document.getElementById('installment_group');
+    if (!paymentType || !installmentGroup) return;
+    if (paymentType.value === 'installment') {
+        installmentGroup.style.display = 'block';
+    } else {
+        installmentGroup.style.display = 'none';
+    }
+}
 </script>
 @endpush
 @endsection

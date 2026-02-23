@@ -6,12 +6,13 @@
 <div class="page-header">
     <div class="breadcrumb">
         <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-        <span class="separator">/</span>
+        <i class="fas fa-chevron-right"></i>
         <a href="{{ route('deals.index') }}">Deals</a>
-        <span class="separator">/</span>
-        <span class="current">Create</span>
+        <i class="fas fa-chevron-right"></i>
+        <span>Create</span>
     </div>
     <h1 class="page-title">Create New Deal</h1>
+    <p class="page-subtitle">Enter deal information</p>
 </div>
 
 @if($errors->any())
@@ -30,6 +31,9 @@
 
 <form method="POST" action="{{ route('deals.store') }}">
     @csrf
+    <input type="hidden" id="dealable_type" name="dealable_type" value="{{ old('dealable_type') }}">
+    <input type="hidden" id="dealable_id" name="dealable_id" value="{{ old('dealable_id') }}">
+    <input type="hidden" id="commission_percentage" name="commission_percentage" value="{{ old('commission_percentage') }}">
 
     <div class="form-card">
         <div class="form-section">
@@ -55,7 +59,7 @@
 
                 <div class="form-group" id="property_group" style="display: none;">
                     <label for="property_id">Property *</label>
-                    <select id="property_id" name="property_id">
+                    <select id="property_id" name="property_id" onchange="setDealable('App\\Models\\Property', this.value)">
                         <option value="">Select Property</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}" {{ old('property_id') == $property->id ? 'selected' : '' }}>
@@ -67,7 +71,7 @@
 
                 <div class="form-group" id="plot_group" style="display: none;">
                     <label for="plot_id">Plot *</label>
-                    <select id="plot_id" name="plot_id">
+                    <select id="plot_id" name="plot_id" onchange="setDealable('App\\Models\\Plot', this.value)">
                         <option value="">Select Plot</option>
                         @foreach($plots as $plot)
                             <option value="{{ $plot->id }}" {{ old('plot_id') == $plot->id ? 'selected' : '' }}>
@@ -94,8 +98,8 @@
                     <select id="dealer_id" name="dealer_id" required onchange="updateCommission()">
                         <option value="">Select Dealer</option>
                         @foreach($dealers as $dealer)
-                            <option value="{{ $dealer->id }}" data-commission="{{ $dealer->commission_rate }}" {{ old('dealer_id') == $dealer->id ? 'selected' : '' }}>
-                                {{ $dealer->user->name ?? 'Dealer' }} - {{ $dealer->commission_rate }}%
+                            <option value="{{ $dealer->id }}" data-commission="{{ $dealer->dealerProfile->default_commission_rate ?? $dealer->commission_rate ?? 0 }}" {{ old('dealer_id') == $dealer->id ? 'selected' : '' }}>
+                                {{ $dealer->name ?? ($dealer->user->name ?? 'Dealer') }} - {{ $dealer->dealerProfile->default_commission_rate ?? $dealer->commission_rate ?? 0 }}%
                             </option>
                         @endforeach
                     </select>
@@ -103,12 +107,33 @@
 
                 <div class="form-group">
                     <label for="amount">Deal Amount (PKR) *</label>
-                    <input type="number" id="amount" name="amount" value="{{ old('amount') }}" placeholder="e.g., 5000000" step="0.01" required onkeyup="updateCommission()">
+                    <input type="number" id="amount" name="deal_amount" value="{{ old('deal_amount') }}" placeholder="e.g., 5000000" step="0.01" required onkeyup="updateCommission()">
                 </div>
 
                 <div class="form-group">
                     <label for="commission_amount">Commission Amount (PKR)</label>
                     <input type="number" id="commission_amount" name="commission_amount" value="{{ old('commission_amount') }}" placeholder="Auto-calculated" step="0.01" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_type">Payment Type *</label>
+                    <select id="payment_type" name="payment_type" required onchange="togglePaymentType()">
+                        <option value="cash" {{ old('payment_type') == 'cash' ? 'selected' : '' }}>Cash</option>
+                        <option value="installment" {{ old('payment_type') == 'installment' ? 'selected' : '' }}>Installment</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="installment_group" style="display: none;">
+                    <label for="installment_months">Installment Months</label>
+                    <input type="number" id="installment_months" name="installment_months" value="{{ old('installment_months') }}" min="1">
+
+                    <label for="down_payment" style="margin-top:8px;">Down Payment (PKR)</label>
+                    <input type="number" id="down_payment" name="down_payment" value="{{ old('down_payment') }}" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="deal_date">Deal Date *</label>
+                    <input type="date" id="deal_date" name="deal_date" value="{{ old('deal_date') }}" required>
                 </div>
 
                 <div class="form-group">
@@ -145,7 +170,7 @@
     .form-section { padding: 30px; border-bottom: 1px solid #e5e7eb; }
     .form-section:last-child { border-bottom: none; }
     .section-header { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
-    .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--success), #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
+    .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), #2563eb); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
     .section-title { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0; }
     .section-description { font-size: 0.875rem; color: var(--gray-600); margin: 4px 0 0 0; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
@@ -184,12 +209,14 @@ function toggleDealType() {
         propertySelect.required = true;
         plotSelect.required = false;
         plotSelect.value = '';
+        setDealable('App\\Models\\Property', propertySelect.value || '');
     } else if (dealType === 'plot') {
         plotGroup.style.display = 'flex';
         propertyGroup.style.display = 'none';
         plotSelect.required = true;
         propertySelect.required = false;
         propertySelect.value = '';
+        setDealable('App\\Models\\Plot', plotSelect.value || '');
     } else {
         propertyGroup.style.display = 'none';
         plotGroup.style.display = 'none';
@@ -202,6 +229,7 @@ function updateCommission() {
     const dealerSelect = document.getElementById('dealer_id');
     const amountInput = document.getElementById('amount');
     const commissionInput = document.getElementById('commission_amount');
+    const commissionPercInput = document.getElementById('commission_percentage');
 
     if (dealerSelect.value && amountInput.value) {
         const selectedOption = dealerSelect.options[dealerSelect.selectedIndex];
@@ -210,6 +238,25 @@ function updateCommission() {
         const commission = (amount * commissionRate) / 100;
 
         commissionInput.value = commission.toFixed(2);
+        if (commissionPercInput) commissionPercInput.value = commissionRate;
+    }
+}
+
+function setDealable(type, id) {
+    const t = document.getElementById('dealable_type');
+    const i = document.getElementById('dealable_id');
+    if (t) t.value = type || '';
+    if (i) i.value = id || '';
+}
+
+function togglePaymentType() {
+    const paymentType = document.getElementById('payment_type');
+    const installmentGroup = document.getElementById('installment_group');
+    if (!paymentType || !installmentGroup) return;
+    if (paymentType.value === 'installment') {
+        installmentGroup.style.display = 'block';
+    } else {
+        installmentGroup.style.display = 'none';
     }
 }
 
@@ -217,6 +264,8 @@ const oldDealType = "{{ old('deal_type') }}";
 if (oldDealType) {
     toggleDealType();
 }
+const oldPaymentType = "{{ old('payment_type') }}";
+if (oldPaymentType) togglePaymentType();
 </script>
 @endpush
 @endsection

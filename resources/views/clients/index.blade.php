@@ -9,208 +9,519 @@
         <i class="fas fa-chevron-right"></i>
         <span>Clients</span>
     </div>
-    <h1 class="page-title">Clients Management</h1>
-    <p class="page-subtitle">Manage client records</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+        <div>
+            <h1 class="page-title">Clients Management</h1>
+            <p class="page-subtitle">Manage client records and relationships</p>
+        </div>
+        @can('clients.create')
+            <a href="{{ route('clients.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Client
+            </a>
+        @endcan
+    </div>
 </div>
-    <!-- Filter & Search Bar -->
-    <div class="card" style="margin-bottom: 20px;">
-        <div class="card-body">
-            <form method="GET" action="{{ route('clients.index') }}" style="display: flex; gap: 15px; align-items: flex-end;">
-                <div class="form-group" style="margin-bottom: 0; flex: 1;">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Name, CNIC, phone..." value="{{ request('search') }}">
-                </div>
 
-                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
-                    <label class="form-label">Client Type</label>
-                    <select name="client_type" class="form-control">
-                        <option value="">All Types</option>
-                        <option value="buyer" {{ request('client_type') == 'buyer' ? 'selected' : '' }}>Buyer</option>
-                        <option value="seller" {{ request('client_type') == 'seller' ? 'selected' : '' }}>Seller</option>
-                        <option value="investor" {{ request('client_type') == 'investor' ? 'selected' : '' }}>Investor</option>
-                    </select>
-                </div>
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    @include('components.stat-card', [
+        'icon' => 'fas fa-users',
+        'value' => $stats['total'] ?? 0,
+        'label' => 'Total Clients',
+        'bgColor' => 'primary'
+    ])
 
-                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
-                    <label class="form-label">Status</label>
-                    <select name="is_active" class="form-control">
-                        <option value="">All Status</option>
-                        <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Inactive</option>
-                    </select>
-                </div>
+    @include('components.stat-card', [
+        'icon' => 'fas fa-user-check',
+        'value' => $stats['active'] ?? 0,
+        'label' => 'Active Clients',
+        'bgColor' => 'success'
+    ])
 
-                <button type="submit" class="btn btn-primary">
+    @include('components.stat-card', [
+        'icon' => 'fas fa-user-plus',
+        'value' => $stats['this_month'] ?? 0,
+        'label' => 'New This Month',
+        'bgColor' => 'warning'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-handshake',
+        'value' => $stats['with_deals'] ?? 0,
+        'label' => 'With Active Deals',
+        'bgColor' => 'info'
+    ])
+</div>
+
+<!-- Filters and Search -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Clients</h3>
+        <div class="card-actions">
+            <form method="GET" action="{{ route('clients.index') }}" class="filters-form">
+                <div class="search-box">
                     <i class="fas fa-search"></i>
-                    Search
+                    <input type="text" name="search" placeholder="Search clients..." value="{{ request('search') }}">
+                </div>
+
+                <select name="client_type" class="filter-select" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    <option value="buyer" {{ request('client_type') == 'buyer' ? 'selected' : '' }}>Buyer</option>
+                    <option value="seller" {{ request('client_type') == 'seller' ? 'selected' : '' }}>Seller</option>
+                    <option value="both" {{ request('client_type') == 'both' ? 'selected' : '' }}>Both</option>
+                </select>
+
+                <select name="client_status" class="filter-select" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    <option value="active" {{ request('client_status') == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ request('client_status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <option value="blacklisted" {{ request('client_status') == 'blacklisted' ? 'selected' : '' }}>Blacklisted</option>
+                </select>
+
+                <button type="submit" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-filter"></i> Filter
                 </button>
 
-                <a href="{{ route('clients.index') }}" class="btn btn-outline">
-                    <i class="fas fa-redo"></i>
-                    Reset
-                </a>
-
-                <a href="{{ route('clients.create') }}" class="btn btn-success">
-                    <i class="fas fa-plus"></i>
-                    Add Client
-                </a>
+                @if(request()->hasAny(['search', 'client_type', 'client_status']))
+                    <a href="{{ route('clients.index') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                @endif
             </form>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid" style="margin-bottom: 20px;">
-        <div class="stat-card primary">
-            <div class="stat-header">
-                <div class="stat-icon">
+    <div class="card-body">
+        @if($clients->isEmpty())
+            <div class="empty-state">
+                <div class="empty-icon">
                     <i class="fas fa-users"></i>
                 </div>
+                <h3>No Clients Found</h3>
+                <p>Start by adding your first client</p>
+                @can('clients.create')
+                    <a href="{{ route('clients.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Client
+                    </a>
+                @endcan
             </div>
-            <div class="stat-value">{{ $stats['total'] ?? 0 }}</div>
-            <div class="stat-label">Total Clients</div>
-        </div>
-
-        <div class="stat-card success">
-            <div class="stat-header">
-                <div class="stat-icon">
-                    <i class="fas fa-user-check"></i>
-                </div>
-            </div>
-            <div class="stat-value">{{ $stats['active'] ?? 0 }}</div>
-            <div class="stat-label">Active Clients</div>
-        </div>
-
-        <div class="stat-card warning">
-            <div class="stat-header">
-                <div class="stat-icon">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-            </div>
-            <div class="stat-value">{{ $stats['this_month'] ?? 0 }}</div>
-            <div class="stat-label">New This Month</div>
-        </div>
-
-        <div class="stat-card danger">
-            <div class="stat-header">
-                <div class="stat-icon">
-                    <i class="fas fa-handshake"></i>
-                </div>
-            </div>
-            <div class="stat-value">{{ $stats['with_deals'] ?? 0 }}</div>
-            <div class="stat-label">With Active Deals</div>
-        </div>
-    </div>
-
-    <!-- Clients Table -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">All Clients ({{ $clients->total() ?? 0 }})</h3>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-sm btn-outline">
-                    <i class="fas fa-file-export"></i>
-                    Export
-                </button>
-                <button class="btn btn-sm btn-outline">
-                    <i class="fas fa-print"></i>
-                    Print
-                </button>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="table-container">
-                <table>
+        @else
+            <div class="table-responsive">
+                <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Client Info</th>
-                            <th>CNIC</th>
+                            <th>Client Details</th>
                             <th>Contact</th>
+                            <th>CNIC</th>
                             <th>Type</th>
-                            <th>Dealer</th>
-                            <th>Properties</th>
+                            <th>Assigned To</th>
+                            <th>Deals</th>
                             <th>Status</th>
-                            <th>Joined</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($clients ?? [] as $client)
+                        @foreach($clients as $client)
                             <tr>
                                 <td>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
-                                            {{ strtoupper(substr($client->name, 0, 1)) }}
-                                        </div>
-                                        <div>
-                                            <div style="font-weight: 600;">{{ $client->name }}</div>
-                                            <div style="font-size: 12px; color: var(--gray);">{{ $client->email }}</div>
-                                        </div>
+                                    <div class="table-primary">
+                                        <strong>{{ $client->name }}</strong>
+                                        <span class="table-secondary">{{ $client->email ?? 'No email' }}</span>
                                     </div>
                                 </td>
-                                <td>{{ $client->cnic ?? 'N/A' }}</td>
                                 <td>
-                                    <div>{{ $client->phone }}</div>
-                                    @if($client->alternate_phone)
-                                        <div style="font-size: 12px; color: var(--gray);">{{ $client->alternate_phone }}</div>
+                                    <div class="table-primary">
+                                        <i class="fas fa-phone" style="color: var(--primary); margin-right: 5px;"></i>
+                                        {{ $client->phone }}
+                                        @if($client->phone_secondary)
+                                            <span class="table-secondary">{{ $client->phone_secondary }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    {{ $client->cnic ?? 'N/A' }}
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        {{ ucfirst($client->client_type ?? 'N/A') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($client->assignedTo)
+                                        <div class="table-primary">
+                                            <strong>{{ $client->assignedTo->name }}</strong>
+                                        </div>
+                                    @else
+                                        <span class="badge badge-warning">Unassigned</span>
                                     @endif
                                 </td>
                                 <td>
                                     <span class="badge badge-primary">
-                                        {{ ucfirst($client->client_type) }}
+                                        {{ $client->deals_count ?? 0 }} Deals
                                     </span>
                                 </td>
                                 <td>
-                                    @if($client->dealer)
-                                        <div style="font-weight: 600;">{{ $client->dealer->user->name ?? 'N/A' }}</div>
-                                        <div style="font-size: 12px; color: var(--gray);">{{ $client->dealer->phone ?? '' }}</div>
+                                    @if(($client->client_status ?? 'active') === 'active')
+                                        <span class="badge badge-success">Active</span>
+                                    @elseif($client->client_status === 'inactive')
+                                        <span class="badge badge-warning">Inactive</span>
                                     @else
-                                        <span style="color: var(--gray);">Not Assigned</span>
+                                        <span class="badge badge-danger">{{ ucfirst($client->client_status) }}</span>
                                     @endif
                                 </td>
                                 <td>
-                                    <div style="font-weight: 600;">{{ $client->plots->count() ?? 0 }} Plots</div>
-                                    <div style="font-size: 12px; color: var(--gray);">{{ $client->property_files->count() ?? 0 }} Files</div>
-                                </td>
-                                <td>
-                                    <span class="badge badge-{{ $client->is_active ? 'success' : 'secondary' }}">
-                                        {{ $client->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>{{ $client->created_at->format('M d, Y') }}</td>
-                                <td>
-                                    <div style="display: flex; gap: 5px;">
-                                        <a href="{{ route('clients.show', $client) }}" class="btn btn-sm btn-primary" title="View">
+                                    <div class="action-buttons">
+                                        <a href="{{ route('clients.show', $client) }}" class="btn-icon" title="View">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('clients.edit', $client) }}" class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('clients.destroy', $client) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                        @can('clients.edit')
+                                            <a href="{{ route('clients.edit', $client) }}" class="btn-icon" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        @endcan
+                                        @can('clients.delete')
+                                            <button onclick="deleteClient({{ $client->id }})" class="btn-icon btn-danger" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">
-                                    <i class="fas fa-users" style="font-size: 48px; margin-bottom: 10px; opacity: 0.3;"></i>
-                                    <p>No clients found</p>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
 
-            @if(isset($clients) && $clients->hasPages())
-                <div style="margin-top: 20px; display: flex; justify-content: center;">
-                    {{ $clients->links() }}
-                </div>
-            @endif
-        </div>
+            <!-- Pagination -->
+            <div class="pagination-wrapper">
+                {{ $clients->links() }}
+            </div>
+        @endif
     </div>
+</div>
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .filters-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 250px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 8px 12px 8px 36px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 0.875rem;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 0.875rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-200);
+    }
+
+    .btn-light {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-sm {
+        padding: 6px 14px;
+        font-size: 0.8125rem;
+    }
+
+    .card-body {
+        padding: 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: var(--gray-100);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--gray-400);
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--gray-600);
+        margin-bottom: 20px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table thead {
+        background: var(--gray-50);
+    }
+
+    .data-table th {
+        padding: 14px 20px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-600);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .data-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--gray-100);
+        font-size: 0.875rem;
+    }
+
+    .data-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .table-primary {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-primary strong {
+        color: var(--gray-900);
+        margin-bottom: 2px;
+    }
+
+    .table-secondary {
+        font-size: 0.8125rem;
+        color: var(--gray-500);
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-success {
+        background: var(--success);
+        color: white;
+    }
+
+    .badge-warning {
+        background: var(--warning);
+        color: white;
+    }
+
+    .badge-info {
+        background: var(--info);
+        color: white;
+    }
+
+    .badge-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .badge-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-icon:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-icon.btn-danger:hover {
+        background: var(--danger);
+        color: white;
+    }
+
+    .pagination-wrapper {
+        padding: 20px 24px;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filters-form {
+            width: 100%;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+    }
+</style>
+
+@can('clients.delete')
+<script>
+    function deleteClient(id) {
+        if (confirm('Are you sure you want to delete this client? This action cannot be undone.')) {
+            fetch(`/clients/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Failed to delete client');
+                }
+            })
+            .catch(error => {
+                alert('An error occurred while deleting the client');
+                console.error(error);
+            });
+        }
+    }
+</script>
+@endcan
 @endsection

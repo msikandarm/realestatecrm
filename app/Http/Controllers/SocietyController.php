@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\Auth;
 
 class SocietyController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:societies.view')->only(['index', 'show']);
+        $this->middleware('can:societies.create')->only(['create', 'store']);
+        $this->middleware('can:societies.edit')->only(['edit', 'update']);
+        $this->middleware('can:societies.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the societies.
      */

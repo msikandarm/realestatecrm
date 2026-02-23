@@ -21,6 +21,11 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:reports.view')->only(['index', 'comprehensiveMonthlyIncome', 'comprehensiveDealerCommission', 'comprehensiveOverdueInstallments', 'exportReport']);
+    }
+
     /**
      * Display reports index with all report types
      */

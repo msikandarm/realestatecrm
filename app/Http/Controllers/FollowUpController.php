@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\Auth;
 
 class FollowUpController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:followups.view')->only(['index']);
+        $this->middleware('can:followups.create')->only(['create', 'store']);
+        $this->middleware('can:followups.edit')->only(['edit', 'update']);
+        $this->middleware('can:followups.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the follow-ups.
      */

@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\DB;
 
 class DealerController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:dealers.view')->only(['index', 'show', 'performance']);
+        $this->middleware('can:dealers.create')->only(['create', 'store']);
+        $this->middleware('can:dealers.edit')->only(['edit', 'update']);
+        $this->middleware('can:dealers.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of dealers.
      */
@@ -51,15 +59,9 @@ class DealerController extends Controller
      */
     public function create()
     {
-        // Get users who are not already dealers
+        // Get all users who are not already linked to a dealer profile
         $users = User::whereDoesntHave('dealer')
-            ->where('role_id', function($query) {
-                $query->select('id')
-                    ->from('roles')
-                    ->where('name', 'Dealer')
-                    ->limit(1);
-            })
-            ->orWhereNull('role_id')
+            ->orderBy('name')
             ->get();
 
         return view('dealers.create', compact('users'));
@@ -72,16 +74,16 @@ class DealerController extends Controller
     {
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id', 'unique:dealers,user_id'],
-            'commission_rate' => ['required', 'numeric', 'min:0', 'max:100'],
-            'bank_account_title' => ['nullable', 'string', 'max:255'],
-            'bank_account_number' => ['nullable', 'string', 'max:50'],
-            'bank_name' => ['nullable', 'string', 'max:255'],
-            'branch' => ['nullable', 'string', 'max:255'],
-            'experience_years' => ['nullable', 'integer', 'min:0'],
-            'specialization' => ['nullable', 'string', 'max:255'],
+            'cnic' => ['nullable', 'string', 'max:20'],
             'license_number' => ['nullable', 'string', 'max:100'],
-            'notes' => ['nullable', 'string'],
-            'status' => ['required', 'in:active,inactive'],
+            'default_commission_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'specialization' => ['nullable', 'in:plots,residential,commercial,all'],
+            'status' => ['required', 'in:active,inactive,suspended'],
+            'bank_name' => ['nullable', 'string', 'max:255'],
+            'account_title' => ['nullable', 'string', 'max:255'],
+            'account_number' => ['nullable', 'string', 'max:50'],
+            'iban' => ['nullable', 'string', 'max:50'],
+            'remarks' => ['nullable', 'string'],
         ]);
 
         $dealer = Dealer::create($validated);
@@ -136,7 +138,15 @@ class DealerController extends Controller
      */
     public function edit(Dealer $dealer)
     {
-        return view('dealers.edit', compact('dealer'));
+        // Get users who are not already dealers (except current dealer's user)
+        $users = User::whereDoesntHave('dealer', function($query) use ($dealer) {
+                $query->where('id', '!=', $dealer->id);
+            })
+            ->orWhere('id', $dealer->user_id)
+            ->orderBy('name')
+            ->get();
+
+        return view('dealers.edit', compact('dealer', 'users'));
     }
 
     /**
@@ -145,16 +155,17 @@ class DealerController extends Controller
     public function update(Request $request, Dealer $dealer)
     {
         $validated = $request->validate([
-            'commission_rate' => ['required', 'numeric', 'min:0', 'max:100'],
-            'bank_account_title' => ['nullable', 'string', 'max:255'],
-            'bank_account_number' => ['nullable', 'string', 'max:50'],
-            'bank_name' => ['nullable', 'string', 'max:255'],
-            'branch' => ['nullable', 'string', 'max:255'],
-            'experience_years' => ['nullable', 'integer', 'min:0'],
-            'specialization' => ['nullable', 'string', 'max:255'],
+            'user_id' => ['required', 'exists:users,id', 'unique:dealers,user_id,' . $dealer->id],
+            'cnic' => ['nullable', 'string', 'max:20'],
             'license_number' => ['nullable', 'string', 'max:100'],
-            'notes' => ['nullable', 'string'],
-            'status' => ['required', 'in:active,inactive'],
+            'default_commission_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'specialization' => ['nullable', 'in:plots,residential,commercial,all'],
+            'status' => ['required', 'in:active,inactive,suspended'],
+            'bank_name' => ['nullable', 'string', 'max:255'],
+            'account_title' => ['nullable', 'string', 'max:255'],
+            'account_number' => ['nullable', 'string', 'max:50'],
+            'iban' => ['nullable', 'string', 'max:50'],
+            'remarks' => ['nullable', 'string'],
         ]);
 
         $dealer->update($validated);

@@ -123,7 +123,7 @@ class Lead extends Model
     {
         return $this->morphMany(FollowUp::class, 'followable')
             ->where('status', 'pending')
-            ->orderBy('follow_up_date');
+            ->orderBy('scheduled_at');
     }
 
     /**
@@ -346,7 +346,7 @@ class Lead extends Model
     public function getLastFollowUpDate(): ?string
     {
         $lastFollowUp = $this->followUps()->first();
-        return $lastFollowUp?->follow_up_date?->format('Y-m-d');
+        return $lastFollowUp?->scheduled_at?->format('Y-m-d');
     }
 
     /**
@@ -355,7 +355,7 @@ class Lead extends Model
     public function getNextFollowUpDate(): ?string
     {
         $nextFollowUp = $this->pendingFollowUps()->first();
-        return $nextFollowUp?->follow_up_date?->format('Y-m-d');
+        return $nextFollowUp?->scheduled_at?->format('Y-m-d');
     }
 
     /**

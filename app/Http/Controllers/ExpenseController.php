@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:expenses.view')->only(['index', 'show', 'report', 'upcomingRecurring']);
+        $this->middleware('can:expenses.create')->only(['create', 'store', 'createRecurrence']);
+        $this->middleware('can:expenses.edit')->only(['edit', 'update', 'markAsPaid', 'clearExpense', 'cancelExpense', 'refundExpense', 'approveExpense', 'linkToEntity']);
+        $this->middleware('can:expenses.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of expenses.
      */

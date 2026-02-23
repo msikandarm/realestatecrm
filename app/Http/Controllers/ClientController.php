@@ -9,12 +9,21 @@ use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:clients.view')->only(['index', 'show', 'conversionAnalytics', 'leadHistory']);
+        $this->middleware('can:clients.create')->only(['create', 'store']);
+        $this->middleware('can:clients.edit')->only(['edit', 'update']);
+        $this->middleware('can:clients.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the clients.
      */
     public function index(Request $request)
     {
-        $query = Client::with(['assignedTo', 'creator', 'originalLead']);
+        $query = Client::with(['assignedTo', 'creator', 'originalLead'])
+            ->withCount(['deals', 'propertyFiles']);
 
         // Check if user can view all clients
         if (!Auth::user()->can('clients.view_all')) {
@@ -58,6 +67,8 @@ class ClientController extends Controller
             'sellers' => Client::sellers()->count(),
             'converted_from_leads' => Client::convertedFromLead()->count(),
             'direct_clients' => Client::directClients()->count(),
+            'this_month' => Client::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
+            'with_deals' => Client::has('deals')->count(),
         ];
 
         $dealers = User::dealers()->active()->get();

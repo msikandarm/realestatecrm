@@ -14,6 +14,15 @@ use Illuminate\Support\Facades\DB;
 
 class LeadController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:leads.view')->only(['index', 'show', 'stats']);
+        $this->middleware('can:leads.create')->only(['create', 'store']);
+        $this->middleware('can:leads.edit')->only(['edit', 'update', 'assign', 'markAsLost']);
+        $this->middleware('can:leads.delete')->only(['destroy']);
+        $this->middleware('can:leads.convert')->only(['convert']);
+    }
+
     /**
      * Display a listing of the leads.
      */

@@ -282,7 +282,7 @@ class Client extends Model
      */
     public function getTotalDealsValue(): float
     {
-        return $this->deals()->sum('total_amount') ?? 0;
+        return $this->deals()->sum('deal_amount') ?? 0;
     }
 
     /**
@@ -290,7 +290,7 @@ class Client extends Model
      */
     public function getActiveDealsCount(): int
     {
-        return $this->deals()->whereIn('deal_status', ['in_progress', 'pending'])->count();
+        return $this->deals()->whereIn('status', ['pending', 'confirmed'])->count();
     }
 
     /**
@@ -298,6 +298,6 @@ class Client extends Model
      */
     public function getCompletedDealsCount(): int
     {
-        return $this->deals()->where('deal_status', 'completed')->count();
+        return $this->deals()->where('status', 'completed')->count();
     }
 }

@@ -12,6 +12,17 @@ use Illuminate\Support\Facades\Auth;
 
 class DealController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:deals.view')->only(['index', 'show']);
+        $this->middleware('can:deals.create')->only(['create', 'store']);
+        $this->middleware('can:deals.edit')->only(['edit', 'update']);
+        $this->middleware('can:deals.delete')->only(['destroy']);
+        $this->middleware('can:deals.approve')->only(['approve']);
+        $this->middleware('can:deals.complete')->only(['complete']);
+        $this->middleware('can:deals.cancel')->only(['cancel']);
+    }
+
     /**
      * Display a listing of the deals.
      */

@@ -6,12 +6,15 @@
 <div class="page-header">
     <div class="breadcrumb">
         <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-        <span class="separator">/</span>
+        <i class="fas fa-chevron-right"></i>
         <a href="{{ route('dealers.index') }}">Dealers</a>
-        <span class="separator">/</span>
-        <span class="current">Edit</span>
+        <i class="fas fa-chevron-right"></i>
+        <a href="{{ route('dealers.show', $dealer) }}">{{ $dealer->user->name ?? 'Dealer' }}</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Edit</span>
     </div>
     <h1 class="page-title">Edit Dealer</h1>
+    <p class="page-subtitle">Update dealer information</p>
 </div>
 
 @if($errors->any())
@@ -58,18 +61,28 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="phone">Phone *</label>
-                    <input type="text" id="phone" name="phone" value="{{ old('phone', $dealer->phone) }}" placeholder="e.g., +92 300 1234567" required>
+                    <label for="cnic">CNIC</label>
+                    <input type="text" id="cnic" name="cnic" value="{{ old('cnic', $dealer->cnic) }}" placeholder="e.g., 12345-1234567-1">
                 </div>
 
                 <div class="form-group">
-                    <label for="cnic">CNIC *</label>
-                    <input type="text" id="cnic" name="cnic" value="{{ old('cnic', $dealer->cnic) }}" placeholder="e.g., 12345-1234567-1" required>
+                    <label for="license_number">License Number</label>
+                    <input type="text" id="license_number" name="license_number" value="{{ old('license_number', $dealer->license_number) }}" placeholder="Enter license number">
                 </div>
 
                 <div class="form-group">
-                    <label for="commission_rate">Commission Rate (%) *</label>
-                    <input type="number" id="commission_rate" name="commission_rate" value="{{ old('commission_rate', $dealer->commission_rate) }}" placeholder="e.g., 2" step="0.01" min="0" max="100" required>
+                    <label for="default_commission_rate">Commission Rate (%) *</label>
+                    <input type="number" id="default_commission_rate" name="default_commission_rate" value="{{ old('default_commission_rate', $dealer->default_commission_rate) }}" placeholder="e.g., 2" step="0.01" min="0" max="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Specialization</label>
+                    <select id="specialization" name="specialization">
+                        <option value="all" {{ old('specialization', $dealer->specialization) == 'all' ? 'selected' : '' }}>All</option>
+                        <option value="plots" {{ old('specialization', $dealer->specialization) == 'plots' ? 'selected' : '' }}>Plots</option>
+                        <option value="residential" {{ old('specialization', $dealer->specialization) == 'residential' ? 'selected' : '' }}>Residential</option>
+                        <option value="commercial" {{ old('specialization', $dealer->specialization) == 'commercial' ? 'selected' : '' }}>Commercial</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -77,12 +90,13 @@
                     <select id="status" name="status" required>
                         <option value="active" {{ old('status', $dealer->status) == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ old('status', $dealer->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        <option value="suspended" {{ old('status', $dealer->status) == 'suspended' ? 'selected' : '' }}>Suspended</option>
                     </select>
                 </div>
 
                 <div class="form-group full-width">
-                    <label for="address">Address</label>
-                    <textarea id="address" name="address" rows="3" placeholder="Enter complete address">{{ old('address', $dealer->address) }}</textarea>
+                    <label for="remarks">Remarks / Notes</label>
+                    <textarea id="remarks" name="remarks" rows="3" placeholder="Enter any notes or remarks">{{ old('remarks', $dealer->remarks) }}</textarea>
                 </div>
             </div>
         </div>
@@ -109,9 +123,14 @@
                     <input type="text" id="account_number" name="account_number" value="{{ old('account_number', $dealer->account_number) }}" placeholder="Enter account number">
                 </div>
 
-                <div class="form-group full-width">
+                <div class="form-group">
                     <label for="account_title">Account Title</label>
                     <input type="text" id="account_title" name="account_title" value="{{ old('account_title', $dealer->account_title) }}" placeholder="Account holder name">
+                </div>
+
+                <div class="form-group">
+                    <label for="iban">IBAN</label>
+                    <input type="text" id="iban" name="iban" value="{{ old('iban', $dealer->iban) }}" placeholder="Enter IBAN">
                 </div>
             </div>
         </div>
@@ -133,7 +152,7 @@
     .form-section { padding: 30px; border-bottom: 1px solid #e5e7eb; }
     .form-section:last-child { border-bottom: none; }
     .section-header { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
-    .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--warning), #f59e0b); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
+    .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
     .section-title { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0; }
     .section-description { font-size: 0.875rem; color: var(--gray-600); margin: 4px 0 0 0; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }

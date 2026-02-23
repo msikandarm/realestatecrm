@@ -6,43 +6,56 @@
 <div class="page-header">
     <div class="breadcrumb">
         <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-        <span class="separator">/</span>
+        <i class="fas fa-chevron-right"></i>
         <a href="{{ route('dealers.index') }}">Dealers</a>
-        <span class="separator">/</span>
+        <i class="fas fa-chevron-right"></i>
         <a href="{{ route('dealers.show', $dealer) }}">{{ $dealer->user->name ?? 'Dealer' }}</a>
-        <span class="separator">/</span>
-        <span class="current">Performance</span>
+        <i class="fas fa-chevron-right"></i>
+        <span>Performance</span>
     </div>
-    <h1 class="page-title">{{ $dealer->user->name ?? 'Dealer' }} - Performance Report</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+        <div>
+            <h1 class="page-title">{{ $dealer->user->name ?? 'Dealer' }} - Performance Report</h1>
+            <p class="page-subtitle">View dealer performance metrics and statistics</p>
+        </div>
+        <a href="{{ route('dealers.show', $dealer) }}" class="btn btn-light">
+            <i class="fas fa-arrow-left"></i> Back to Dealer
+        </a>
+    </div>
 </div>
 
+<!-- Statistics Cards -->
 <div class="stats-grid">
-    <x-stat-card
-        icon="fas fa-handshake"
-        value="{{ $performanceData['total_deals'] ?? 0 }}"
-        label="Total Deals"
-        bgColor="bg-primary"
-    />
-    <x-stat-card
-        icon="fas fa-check-circle"
-        value="{{ $performanceData['completed_deals'] ?? 0 }}"
-        label="Completed"
-        bgColor="bg-success"
-    />
-    <x-stat-card
-        icon="fas fa-money-bill-wave"
-        value="PKR {{ number_format($performanceData['total_commission'] ?? 0) }}"
-        label="Total Commission"
-        bgColor="bg-warning"
-    />
-    <x-stat-card
-        icon="fas fa-percentage"
-        value="{{ $performanceData['success_rate'] ?? 0 }}%"
-        label="Success Rate"
-        bgColor="bg-info"
-    />
+    @include('components.stat-card', [
+        'icon' => 'fas fa-handshake',
+        'value' => $performanceData['total_deals'] ?? 0,
+        'label' => 'Total Deals',
+        'bgColor' => 'primary'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-check-circle',
+        'value' => $performanceData['completed_deals'] ?? 0,
+        'label' => 'Completed',
+        'bgColor' => 'success'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-money-bill-wave',
+        'value' => 'PKR ' . number_format($performanceData['total_commission'] ?? 0),
+        'label' => 'Total Commission',
+        'bgColor' => 'warning'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-percentage',
+        'value' => ($performanceData['success_rate'] ?? 0) . '%',
+        'label' => 'Success Rate',
+        'bgColor' => 'info'
+    ])
 </div>
 
+<!-- Charts Grid -->
 <div class="performance-grid">
     <div class="chart-card">
         <div class="card-header">
@@ -67,6 +80,7 @@
     </div>
 </div>
 
+<!-- Commission Breakdown Table -->
 <div class="details-card">
     <div class="card-header">
         <h3 class="card-title">
@@ -86,15 +100,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($monthlyData ?? [] as $data)
-                    <tr>
-                        <td><strong>{{ $data['month'] }}</strong></td>
-                        <td>{{ $data['total_deals'] }}</td>
-                        <td><span class="badge-success">{{ $data['completed_deals'] }}</span></td>
-                        <td>PKR {{ number_format($data['total_amount']) }}</td>
-                        <td><strong class="text-success">PKR {{ number_format($data['commission']) }}</strong></td>
-                    </tr>
-                    @endforeach
+                    @forelse($monthlyData ?? [] as $data)
+                        <tr>
+                            <td><strong>{{ $data['month'] }}</strong></td>
+                            <td>{{ $data['total_deals'] }}</td>
+                            <td><span class="badge badge-success">{{ $data['completed_deals'] }}</span></td>
+                            <td>PKR {{ number_format($data['total_amount']) }}</td>
+                            <td><strong class="text-success">PKR {{ number_format($data['commission']) }}</strong></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center">No data available</td>
+                        </tr>
+                    @endforelse
                 </tbody>
                 <tfoot>
                     <tr class="totals-row">
@@ -112,17 +130,167 @@
 
 @push('styles')
 <style>
-    .performance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-bottom: 25px; }
-    .chart-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-    .card-header { padding: 25px; border-bottom: 1px solid #e5e7eb; }
-    .card-title { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0; display: flex; align-items: center; gap: 10px; }
-    .card-body { padding: 30px; }
-    .details-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-    .badge-success { padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
-    .totals-row { background: var(--gray-50); font-weight: 700; }
-    .totals-row td { padding: 15px !important; }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .performance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 25px;
+        margin-bottom: 25px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: var(--primary);
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .details-card .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .details-card .card-header h3 {
+        margin: 0;
+    }
+
+    .details-card .card-body {
+        padding: 0;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 14px 20px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .data-table th {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        background: #f9fafb;
+    }
+
+    .data-table td {
+        font-size: 14px;
+        color: var(--gray-700);
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .totals-row {
+        background: var(--gray-50);
+    }
+
+    .totals-row td {
+        padding: 16px 20px !important;
+        font-weight: 600;
+    }
+
+    .text-success {
+        color: var(--success);
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-light {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-light:hover {
+        background: var(--gray-50);
+    }
+
     @media (max-width: 768px) {
-        .performance-grid { grid-template-columns: 1fr; }
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .performance-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 @endpush

@@ -8,6 +8,14 @@ use Illuminate\Support\Facades\Storage;
 
 class CityController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:cities.view')->only(['index']);
+        $this->middleware('can:cities.create')->only(['create', 'store']);
+        $this->middleware('can:cities.edit')->only(['edit', 'update']);
+        $this->middleware('can:cities.delete')->only(['destroy']);
+    }
+
     public function index(Request $request)
     {
         $query = City::query();

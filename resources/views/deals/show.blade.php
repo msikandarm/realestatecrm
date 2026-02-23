@@ -6,130 +6,159 @@
 <div class="page-header">
     <div class="breadcrumb">
         <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-        <span class="separator">/</span>
+        <i class="fas fa-chevron-right"></i>
         <a href="{{ route('deals.index') }}">Deals</a>
-        <span class="separator">/</span>
-        <span class="current">Deal #{{ $deal->id }}</span>
+        <i class="fas fa-chevron-right"></i>
+        <span>Deal #{{ $deal->id }}</span>
     </div>
-    <div class="header-actions">
-        <h1 class="page-title">Deal #{{ $deal->id }}</h1>
-        <div class="actions-group">
+    <div class="header-content">
+        <div class="header-left">
+            <h1 class="page-title">Deal #{{ $deal->id }}</h1>
+            <p class="page-subtitle">
+                @if($deal->property)
+                    <i class="fas fa-building"></i> {{ $deal->property->title }}
+                @elseif($deal->plot)
+                    <i class="fas fa-th"></i> Plot #{{ $deal->plot->plot_number }}
+                @endif
+                | {{ $deal->created_at->format('M d, Y') }}
+            </p>
+        </div>
+        <div class="header-actions">
             @can('deals.edit')
-            <a href="{{ route('deals.edit', $deal) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Edit
-            </a>
+                <a href="{{ route('deals.edit', $deal) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Deal
+                </a>
             @endcan
             @can('deals.delete')
-            <form action="{{ route('deals.destroy', $deal) }}" method="POST" style="display: inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this deal?')">
+                <button onclick="deleteDeal({{ $deal->id }})" class="btn btn-danger">
                     <i class="fas fa-trash"></i> Delete
                 </button>
-            </form>
             @endcan
         </div>
     </div>
 </div>
 
-<div class="content-layout">
-    <div class="main-content">
-        <div class="stats-grid">
-            <x-stat-card
-                icon="fas fa-money-bill-wave"
-                value="PKR {{ number_format($deal->amount) }}"
-                label="Deal Amount"
-                bgColor="bg-success"
-            />
-            <x-stat-card
-                icon="fas fa-percentage"
-                value="PKR {{ number_format($deal->commission_amount ?? 0) }}"
-                label="Commission"
-                bgColor="bg-warning"
-            />
-            <x-stat-card
-                icon="fas fa-calendar"
-                value="{{ $deal->created_at->format('M d, Y') }}"
-                label="Deal Date"
-                bgColor="bg-info"
-            />
-            <x-stat-card
-                icon="fas fa-user"
-                value="{{ $deal->dealer->user->name ?? 'N/A' }}"
-                label="Dealer"
-                bgColor="bg-purple"
-            />
-        </div>
+@if(session('success'))
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+@endif
 
+<div class="stats-grid" style="margin-bottom: 30px;">
+    @include('components.stat-card', [
+        'icon' => 'fas fa-money-bill-wave',
+        'value' => 'PKR ' . number_format($deal->amount),
+        'label' => 'Deal Amount',
+        'bgColor' => 'success'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-percentage',
+        'value' => 'PKR ' . number_format($deal->commission_amount ?? 0),
+        'label' => 'Commission',
+        'bgColor' => 'warning'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-calendar',
+        'value' => $deal->created_at->format('M d, Y'),
+        'label' => 'Deal Date',
+        'bgColor' => 'info'
+    ])
+
+    @include('components.stat-card', [
+        'icon' => 'fas fa-user-tie',
+        'value' => $deal->dealer->user->name ?? 'N/A',
+        'label' => 'Dealer',
+        'bgColor' => 'primary'
+    ])
+</div>
+
+<div class="details-layout">
+    <!-- Main Column -->
+    <div class="main-column">
+        <!-- Deal Information Card -->
         <div class="details-card">
             <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-info-circle"></i> Deal Information
-                </h3>
+                <h3><i class="fas fa-info-circle"></i> Deal Information</h3>
+                <span class="badge badge-{{ $deal->status == 'completed' ? 'success' : ($deal->status == 'approved' ? 'info' : ($deal->status == 'pending' ? 'warning' : 'danger')) }}">
+                    {{ ucfirst($deal->status) }}
+                </span>
             </div>
             <div class="card-body">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Deal ID</span>
-                        <span class="info-value">#{{ $deal->id }}</span>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Deal ID</label>
+                        <value><span class="code-badge">#{{ $deal->id }}</span></value>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Status</span>
-                        <span class="status-badge status-{{ $deal->status }}">{{ ucfirst($deal->status) }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Property/Plot</span>
-                        <span class="info-value">
+                    <div class="detail-item">
+                        <label>Deal Type</label>
+                        <value>
                             @if($deal->property)
-                                <i class="fas fa-building"></i> {{ $deal->property->title }}
+                                <i class="fas fa-building text-primary"></i> Property
                             @elseif($deal->plot)
-                                <i class="fas fa-th"></i> Plot #{{ $deal->plot->plot_number }}
+                                <i class="fas fa-th text-success"></i> Plot
                             @else
                                 N/A
                             @endif
-                        </span>
+                        </value>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Client</span>
-                        <span class="info-value">{{ $deal->client->name ?? 'N/A' }}</span>
+                    <div class="detail-item">
+                        <label>Property/Plot</label>
+                        <value>
+                            @if($deal->property)
+                                {{ $deal->property->title }}
+                            @elseif($deal->plot)
+                                Plot #{{ $deal->plot->plot_number }}
+                            @else
+                                N/A
+                            @endif
+                        </value>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Dealer</span>
-                        <span class="info-value">{{ $deal->dealer->user->name ?? 'N/A' }}</span>
+                    <div class="detail-item">
+                        <label>Client</label>
+                        <value><i class="fas fa-user text-primary"></i> {{ $deal->client->name ?? 'N/A' }}</value>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Deal Amount</span>
-                        <span class="info-value">PKR {{ number_format($deal->amount) }}</span>
+                    <div class="detail-item">
+                        <label>Dealer</label>
+                        <value><i class="fas fa-user-tie text-info"></i> {{ $deal->dealer->user->name ?? 'N/A' }}</value>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Commission</span>
-                        <span class="info-value">PKR {{ number_format($deal->commission_amount ?? 0) }}</span>
+                    <div class="detail-item">
+                        <label>Deal Amount</label>
+                        <value class="text-success"><strong>PKR {{ number_format($deal->amount) }}</strong></value>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Created Date</span>
-                        <span class="info-value">{{ $deal->created_at->format('M d, Y h:i A') }}</span>
+                    <div class="detail-item">
+                        <label>Commission Amount</label>
+                        <value class="text-warning"><strong>PKR {{ number_format($deal->commission_amount ?? 0) }}</strong></value>
+                    </div>
+                    <div class="detail-item">
+                        <label>Created Date</label>
+                        <value>
+                            <i class="fas fa-calendar-alt text-info"></i>
+                            {{ $deal->created_at->format('M d, Y h:i A') }}
+                        </value>
                     </div>
                 </div>
 
                 @if($deal->notes)
-                <div class="notes-section">
-                    <h4 class="section-subtitle">Notes</h4>
-                    <p class="notes-text">{{ $deal->notes }}</p>
-                </div>
+                    <div class="detail-item full-width" style="margin-top: 20px;">
+                        <label><i class="fas fa-sticky-note"></i> Notes</label>
+                        <value>{{ $deal->notes }}</value>
+                    </div>
                 @endif
             </div>
         </div>
 
-        <div class="timeline-card">
+        <!-- Timeline Card -->
+        <div class="details-card">
             <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-history"></i> Deal Timeline
-                </h3>
+                <h3><i class="fas fa-history"></i> Deal Timeline</h3>
             </div>
             <div class="card-body">
                 <div class="timeline">
                     <div class="timeline-item">
-                        <div class="timeline-marker status-pending"></div>
+                        <div class="timeline-marker pending"></div>
                         <div class="timeline-content">
                             <h4 class="timeline-title">Deal Created</h4>
                             <p class="timeline-date">{{ $deal->created_at->format('M d, Y h:i A') }}</p>
@@ -139,7 +168,7 @@
 
                     @if($deal->status == 'approved' || $deal->status == 'completed')
                     <div class="timeline-item">
-                        <div class="timeline-marker status-approved"></div>
+                        <div class="timeline-marker approved"></div>
                         <div class="timeline-content">
                             <h4 class="timeline-title">Deal Approved</h4>
                             <p class="timeline-date">{{ $deal->updated_at->format('M d, Y h:i A') }}</p>
@@ -150,7 +179,7 @@
 
                     @if($deal->status == 'completed')
                     <div class="timeline-item">
-                        <div class="timeline-marker status-completed"></div>
+                        <div class="timeline-marker completed"></div>
                         <div class="timeline-content">
                             <h4 class="timeline-title">Deal Completed</h4>
                             <p class="timeline-date">{{ $deal->updated_at->format('M d, Y h:i A') }}</p>
@@ -161,7 +190,7 @@
 
                     @if($deal->status == 'cancelled')
                     <div class="timeline-item">
-                        <div class="timeline-marker status-cancelled"></div>
+                        <div class="timeline-marker cancelled"></div>
                         <div class="timeline-content">
                             <h4 class="timeline-title">Deal Cancelled</h4>
                             <p class="timeline-date">{{ $deal->updated_at->format('M d, Y h:i A') }}</p>
@@ -174,48 +203,104 @@
         </div>
     </div>
 
-    <div class="sidebar">
+    <!-- Sidebar Column -->
+    <div class="sidebar-column">
+        <!-- Status Card -->
         <div class="sidebar-card">
-            <h4 class="sidebar-title">Status</h4>
-            <div class="status-display status-{{ $deal->status }}">
-                <i class="fas fa-circle"></i> {{ ucfirst($deal->status) }}
+            <div class="sidebar-header">
+                <h4>Status</h4>
             </div>
-        </div>
-
-        <div class="sidebar-card">
-            <h4 class="sidebar-title">Client Details</h4>
-            <div class="client-info">
-                <div class="client-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div>
-                    <p class="client-name">{{ $deal->client->name ?? 'N/A' }}</p>
-                    @if($deal->client && $deal->client->phone)
-                    <p class="client-phone"><i class="fas fa-phone"></i> {{ $deal->client->phone }}</p>
-                    @endif
+            <div class="sidebar-body">
+                <div class="status-item {{ $deal->status }}">
+                    <i class="fas fa-circle"></i>
+                    <span>{{ ucfirst($deal->status) }}</span>
                 </div>
             </div>
         </div>
 
+        <!-- Quick Stats Card -->
         <div class="sidebar-card">
-            <h4 class="sidebar-title">Dealer Details</h4>
-            <div class="dealer-info">
-                <div class="dealer-avatar">
-                    <i class="fas fa-user-tie"></i>
+            <div class="sidebar-header">
+                <h4>Quick Stats</h4>
+            </div>
+            <div class="sidebar-body">
+                <div class="sidebar-stat">
+                    <div class="stat-label">
+                        <i class="fas fa-money-bill-wave text-success"></i>
+                        <span>Amount</span>
+                    </div>
+                    <div class="stat-value">PKR {{ number_format($deal->amount) }}</div>
                 </div>
-                <div>
-                    <p class="dealer-name">{{ $deal->dealer->user->name ?? 'N/A' }}</p>
-                    @if($deal->dealer && $deal->dealer->phone)
-                    <p class="dealer-phone"><i class="fas fa-phone"></i> {{ $deal->dealer->phone }}</p>
-                    @endif
+                <div class="sidebar-stat">
+                    <div class="stat-label">
+                        <i class="fas fa-percentage text-warning"></i>
+                        <span>Commission</span>
+                    </div>
+                    <div class="stat-value">PKR {{ number_format($deal->commission_amount ?? 0) }}</div>
                 </div>
             </div>
         </div>
 
+        <!-- Client Details Card -->
+        <div class="sidebar-card">
+            <div class="sidebar-header">
+                <h4>Client Details</h4>
+            </div>
+            <div class="sidebar-body">
+                <div class="person-info">
+                    <div class="person-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="person-details">
+                        <p class="person-name">{{ $deal->client->name ?? 'N/A' }}</p>
+                        @if($deal->client && $deal->client->phone)
+                        <p class="person-meta"><i class="fas fa-phone"></i> {{ $deal->client->phone }}</p>
+                        @endif
+                        @if($deal->client && $deal->client->email)
+                        <p class="person-meta"><i class="fas fa-envelope"></i> {{ $deal->client->email }}</p>
+                        @endif
+                    </div>
+                </div>
+                @if($deal->client)
+                <a href="{{ route('clients.show', $deal->client) }}" class="sidebar-link">
+                    <i class="fas fa-external-link-alt"></i> View Client Profile
+                </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- Dealer Details Card -->
+        <div class="sidebar-card">
+            <div class="sidebar-header">
+                <h4>Dealer Details</h4>
+            </div>
+            <div class="sidebar-body">
+                <div class="person-info">
+                    <div class="person-avatar dealer">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="person-details">
+                        <p class="person-name">{{ $deal->dealer->user->name ?? 'N/A' }}</p>
+                        @if($deal->dealer && $deal->dealer->user && $deal->dealer->user->phone)
+                        <p class="person-meta"><i class="fas fa-phone"></i> {{ $deal->dealer->user->phone }}</p>
+                        @endif
+                    </div>
+                </div>
+                @if($deal->dealer)
+                <a href="{{ route('dealers.show', $deal->dealer) }}" class="sidebar-link">
+                    <i class="fas fa-external-link-alt"></i> View Dealer Profile
+                </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- Quick Actions Card -->
         @if($deal->property || $deal->plot)
         <div class="sidebar-card">
-            <h4 class="sidebar-title">Property Details</h4>
-            <div class="property-link">
+            <div class="sidebar-header">
+                <h4>Quick Actions</h4>
+            </div>
+            <div class="sidebar-body">
                 @if($deal->property)
                     <a href="{{ route('properties.show', $deal->property) }}" class="action-link">
                         <i class="fas fa-building"></i> View Property
@@ -228,60 +313,480 @@
             </div>
         </div>
         @endif
+
+        <!-- Recent Activity Card -->
+        <div class="sidebar-card">
+            <div class="sidebar-header">
+                <h4>Recent Activity</h4>
+            </div>
+            <div class="sidebar-body">
+                <div class="activity-item">
+                    <i class="fas fa-plus-circle text-success"></i>
+                    <div class="activity-content">
+                        <p>Deal created</p>
+                        <span class="activity-time">{{ $deal->created_at->diffForHumans() }}</span>
+                    </div>
+                </div>
+                @if($deal->updated_at != $deal->created_at)
+                    <div class="activity-item">
+                        <i class="fas fa-edit text-info"></i>
+                        <div class="activity-content">
+                            <p>Last updated</p>
+                            <span class="activity-time">{{ $deal->updated_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 
-@push('styles')
 <style>
-    .content-layout { display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
-    .main-content { display: flex; flex-direction: column; gap: 25px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-    .details-card, .timeline-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-    .card-header { padding: 25px; border-bottom: 1px solid #e5e7eb; }
-    .card-title { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0; display: flex; align-items: center; gap: 10px; }
-    .card-body { padding: 30px; }
-    .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
-    .info-item { display: flex; flex-direction: column; gap: 8px; }
-    .info-label { font-size: 0.875rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-value { font-size: 1.1rem; font-weight: 600; color: var(--gray-900); }
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.875rem; font-weight: 600; }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-approved { background: #dbeafe; color: #1e40af; }
-    .status-completed { background: #d1fae5; color: #065f46; }
-    .status-cancelled { background: #fee2e2; color: #991b1b; }
-    .notes-section { margin-top: 30px; padding-top: 30px; border-top: 1px solid #e5e7eb; }
-    .section-subtitle { font-size: 1rem; font-weight: 700; color: var(--gray-900); margin: 0 0 12px 0; }
-    .notes-text { color: var(--gray-700); line-height: 1.7; margin: 0; }
-    .timeline { position: relative; padding-left: 40px; }
-    .timeline-item { position: relative; padding-bottom: 30px; }
-    .timeline-item:last-child { padding-bottom: 0; }
-    .timeline-item::before { content: ''; position: absolute; left: -29px; top: 30px; bottom: -10px; width: 2px; background: #e5e7eb; }
-    .timeline-item:last-child::before { display: none; }
-    .timeline-marker { position: absolute; left: -36px; top: 0; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px #e5e7eb; }
-    .timeline-marker.status-pending { background: #f59e0b; }
-    .timeline-marker.status-approved { background: #3b82f6; }
-    .timeline-marker.status-completed { background: #10b981; }
-    .timeline-marker.status-cancelled { background: #ef4444; }
-    .timeline-title { font-size: 1rem; font-weight: 700; color: var(--gray-900); margin: 0 0 4px 0; }
-    .timeline-date { font-size: 0.875rem; color: var(--gray-600); margin: 0 0 8px 0; }
-    .timeline-description { font-size: 0.95rem; color: var(--gray-700); margin: 0; }
-    .sidebar { display: flex; flex-direction: column; gap: 20px; }
-    .sidebar-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); padding: 20px; }
-    .sidebar-title { font-size: 0.95rem; font-weight: 700; color: var(--gray-900); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px; }
-    .status-display { padding: 12px 16px; background: var(--gray-100); border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .client-info, .dealer-info { display: flex; gap: 12px; align-items: center; }
-    .client-avatar, .dealer-avatar { width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
-    .client-name, .dealer-name { font-weight: 600; color: var(--gray-900); margin: 0 0 4px 0; }
-    .client-phone, .dealer-phone { font-size: 0.9rem; color: var(--gray-600); margin: 0; display: flex; align-items: center; gap: 6px; }
-    .action-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--gray-50); border-radius: 8px; color: var(--gray-700); text-decoration: none; transition: all 0.3s; font-size: 0.9rem; font-weight: 500; }
-    .action-link:hover { background: var(--primary); color: white; }
-    @media (max-width: 1024px) {
-        .content-layout { grid-template-columns: 1fr; }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
     }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-top: 12px;
+    }
+
+    .header-left {
+        flex: 1;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .page-subtitle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        color: var(--gray-600);
+        margin-top: 8px;
+    }
+
+    .details-layout {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+    }
+
+    .main-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .sidebar-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .details-card,
+    .sidebar-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    .card-header h3 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-header i {
+        color: var(--primary);
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .detail-item.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .detail-item label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-item value {
+        font-size: 0.95rem;
+        color: var(--gray-900);
+        font-weight: 500;
+    }
+
+    .code-badge {
+        background: var(--gray-100);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-success { background: var(--success); color: white; }
+    .badge-warning { background: var(--warning); color: white; }
+    .badge-info { background: var(--info); color: white; }
+    .badge-primary { background: var(--primary); color: white; }
+    .badge-danger { background: var(--danger); color: white; }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-danger {
+        background: transparent;
+        color: var(--danger);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-danger:hover {
+        background: var(--danger);
+        color: white;
+    }
+
+    /* Timeline Styles */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--gray-200);
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 25px;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -26px;
+        top: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--gray-200);
+    }
+
+    .timeline-marker.pending { background: var(--warning); box-shadow: 0 0 0 2px var(--warning); }
+    .timeline-marker.approved { background: var(--info); box-shadow: 0 0 0 2px var(--info); }
+    .timeline-marker.completed { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
+    .timeline-marker.cancelled { background: var(--danger); box-shadow: 0 0 0 2px var(--danger); }
+
+    .timeline-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 4px 0;
+    }
+
+    .timeline-date {
+        font-size: 0.8125rem;
+        color: var(--gray-500);
+        margin: 0 0 6px 0;
+    }
+
+    .timeline-description {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin: 0;
+    }
+
+    /* Sidebar Styles */
+    .sidebar-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    .sidebar-header h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .sidebar-body {
+        padding: 20px;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .status-item.pending { background: #fef3c7; color: #92400e; }
+    .status-item.approved { background: #dbeafe; color: #1e40af; }
+    .status-item.completed { background: #d1fae5; color: #065f46; }
+    .status-item.cancelled { background: #fee2e2; color: #991b1b; }
+
+    .status-item i { font-size: 0.5rem; }
+
+    .sidebar-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .sidebar-stat:last-child {
+        border-bottom: none;
+    }
+
+    .stat-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .stat-value {
+        font-weight: 700;
+        color: var(--gray-900);
+        font-size: 0.875rem;
+    }
+
+    .person-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .person-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .person-avatar.dealer {
+        background: linear-gradient(135deg, var(--info), #0284c7);
+    }
+
+    .person-name {
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 4px 0;
+    }
+
+    .person-meta {
+        font-size: 0.8125rem;
+        color: var(--gray-500);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sidebar-link,
+    .action-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 15px;
+        background: var(--gray-50);
+        border-radius: 8px;
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .sidebar-link:hover,
+    .action-link:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-item i {
+        margin-top: 2px;
+    }
+
+    .activity-content p {
+        font-size: 0.875rem;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+
+    .alert {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    @media (max-width: 1024px) {
+        .details-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar-column {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+    }
+
     @media (max-width: 768px) {
-        .stats-grid { grid-template-columns: 1fr; }
-        .info-grid { grid-template-columns: 1fr; }
+        .header-content {
+            flex-direction: column;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
-@endpush
+
+@can('deals.delete')
+<script>
+    function deleteDeal(id) {
+        if (confirm('Are you sure you want to delete this deal? This action cannot be undone.')) {
+            fetch(`/deals/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '{{ route("deals.index") }}';
+                } else {
+                    alert(data.message || 'Failed to delete deal');
+                }
+            })
+            .catch(error => {
+                alert('An error occurred while deleting the deal');
+                console.error(error);
+            });
+        }
+    }
+</script>
+@endcan
 @endsection

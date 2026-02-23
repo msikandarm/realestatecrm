@@ -15,6 +15,14 @@ use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:properties.view')->only(['index', 'show']);
+        $this->middleware('can:properties.create')->only(['create', 'store']);
+        $this->middleware('can:properties.edit')->only(['edit', 'update']);
+        $this->middleware('can:properties.delete')->only(['destroy']);
+    }
+
     /**
      * Display a listing of the properties.
      */
